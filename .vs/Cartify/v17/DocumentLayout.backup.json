@@ -1,0 +1,110 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Cartify\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{F785EC85-62BD-2C7B-6BF6-1E8368F788E5}|Cartify.AuthService\\Cartify.AuthService.csproj|d:\\cartify\\cartify.authservice\\dtos\\loginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F785EC85-62BD-2C7B-6BF6-1E8368F788E5}|Cartify.AuthService\\Cartify.AuthService.csproj|solutionrelative:cartify.authservice\\dtos\\loginrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F785EC85-62BD-2C7B-6BF6-1E8368F788E5}|Cartify.AuthService\\Cartify.AuthService.csproj|d:\\cartify\\cartify.authservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F785EC85-62BD-2C7B-6BF6-1E8368F788E5}|Cartify.AuthService\\Cartify.AuthService.csproj|solutionrelative:cartify.authservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F785EC85-62BD-2C7B-6BF6-1E8368F788E5}|Cartify.AuthService\\Cartify.AuthService.csproj|d:\\cartify\\cartify.authservice\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F785EC85-62BD-2C7B-6BF6-1E8368F788E5}|Cartify.AuthService\\Cartify.AuthService.csproj|solutionrelative:cartify.authservice\\controllers\\authcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F785EC85-62BD-2C7B-6BF6-1E8368F788E5}|Cartify.AuthService\\Cartify.AuthService.csproj|d:\\cartify\\cartify.authservice\\dtos\\registerrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F785EC85-62BD-2C7B-6BF6-1E8368F788E5}|Cartify.AuthService\\Cartify.AuthService.csproj|solutionrelative:cartify.authservice\\dtos\\registerrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F785EC85-62BD-2C7B-6BF6-1E8368F788E5}|Cartify.AuthService\\Cartify.AuthService.csproj|d:\\cartify\\cartify.authservice\\cartify.authservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{F785EC85-62BD-2C7B-6BF6-1E8368F788E5}|Cartify.AuthService\\Cartify.AuthService.csproj|solutionrelative:cartify.authservice\\cartify.authservice.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Cartify.AuthService.csproj",
+              "DocumentMoniker": "D:\\Cartify\\Cartify.AuthService\\Cartify.AuthService.csproj",
+              "RelativeDocumentMoniker": "Cartify.AuthService\\Cartify.AuthService.csproj",
+              "ToolTip": "D:\\Cartify\\Cartify.AuthService\\Cartify.AuthService.csproj",
+              "RelativeToolTip": "Cartify.AuthService\\Cartify.AuthService.csproj",
+              "ViewState": "AgIAABIAAAAAAAAAAABBwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-06-04T03:12:08.355Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Cartify\\Cartify.AuthService\\Program.cs",
+              "RelativeDocumentMoniker": "Cartify.AuthService\\Program.cs",
+              "ToolTip": "D:\\Cartify\\Cartify.AuthService\\Program.cs",
+              "RelativeToolTip": "Cartify.AuthService\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAABIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T03:08:41.417Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "LoginRequest.cs",
+              "DocumentMoniker": "D:\\Cartify\\Cartify.AuthService\\DTOs\\LoginRequest.cs",
+              "RelativeDocumentMoniker": "Cartify.AuthService\\DTOs\\LoginRequest.cs",
+              "ToolTip": "D:\\Cartify\\Cartify.AuthService\\DTOs\\LoginRequest.cs",
+              "RelativeToolTip": "Cartify.AuthService\\DTOs\\LoginRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T03:01:54.556Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RegisterRequest.cs",
+              "DocumentMoniker": "D:\\Cartify\\Cartify.AuthService\\DTOs\\RegisterRequest.cs",
+              "RelativeDocumentMoniker": "Cartify.AuthService\\DTOs\\RegisterRequest.cs",
+              "ToolTip": "D:\\Cartify\\Cartify.AuthService\\DTOs\\RegisterRequest.cs",
+              "RelativeToolTip": "Cartify.AuthService\\DTOs\\RegisterRequest.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAABQwAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T03:01:51.261Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AuthController.cs",
+              "DocumentMoniker": "D:\\Cartify\\Cartify.AuthService\\Controllers\\AuthController.cs",
+              "RelativeDocumentMoniker": "Cartify.AuthService\\Controllers\\AuthController.cs",
+              "ToolTip": "D:\\Cartify\\Cartify.AuthService\\Controllers\\AuthController.cs",
+              "RelativeToolTip": "Cartify.AuthService\\Controllers\\AuthController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-06-04T02:57:51.087Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+.git/
+.gitignore
+**/appsettings.Development.json
+docker-compose*.yml
+Dockerfile
+.dockerignore
+run-all.ps1
+stop-all.ps1

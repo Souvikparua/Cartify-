@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cartify — Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green:#3bb77e; --green-d:#29a56c; --green-soft:#e6f7ef;
+      --line:#ececec; --dark:#253d4e; --muted:#7e7e7e; --bg:#f4f6fa; --card:#fff;
+      --pink:#f74b81; --amber:#f59e0b; --blue:#3f8efc; --shadow:0 8px 30px rgba(0,0,0,.08); --radius:12px;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Quicksand",system-ui,sans-serif; background:var(--bg); color:var(--dark); }
+    a { color:inherit; text-decoration:none; }
+    button { font-family:inherit; cursor:pointer; border:none; }
+    input,select,textarea { font-family:inherit; }
+    .topbar { background:#fff; border-bottom:1px solid var(--line); padding:16px 26px; display:flex; align-items:center; gap:12px; }
+    .brand { display:flex; align-items:center; gap:10px; font-size:24px; font-weight:700; }
+    .brand .leaf { width:34px; height:34px; border-radius:9px; background:var(--green); display:grid; place-items:center; font-size:18px; }
+    .brand b { color:var(--green); }
+    .steps { margin-left:auto; font-size:13px; color:var(--muted); }
+    .wrap { max-width:1140px; margin:0 auto; padding:26px 20px 60px; }
+    h1.title { font-size:26px; margin:0 0 20px; }
+    .layout { display:grid; grid-template-columns:1fr 380px; gap:24px; align-items:start; }
+    @media (max-width:900px){ .layout { grid-template-columns:1fr; } }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow); margin-bottom:20px; }
+    .card h2 { font-size:18px; margin:0 0 4px; display:flex; align-items:center; gap:9px; }
+    .card .sub { color:var(--muted); font-size:13px; margin-bottom:16px; }
+    .field { margin-bottom:13px; }
+    .field label { display:block; font-size:13px; color:var(--muted); margin-bottom:5px; font-weight:600; }
+    .field input,.field select,.field textarea { width:100%; padding:11px 13px; border-radius:8px; font-size:14px; border:1px solid var(--line); background:#fff; color:var(--dark); outline:none; }
+    .field input:focus,.field select:focus,.field textarea:focus { border-color:var(--green); }
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .btn { padding:10px 16px; border-radius:8px; font-weight:700; font-size:14px; background:#eef1f5; color:var(--dark); }
+    .btn:hover { background:#e3e7ec; }
+    .btn-green { background:var(--green); color:#fff; } .btn-green:hover { background:var(--green-d); }
+    .btn-out { background:#fff; border:1px solid var(--green); color:var(--green-d); }
+
+    .addr { border:1.5px solid var(--line); border-radius:10px; padding:14px; margin-bottom:10px; cursor:pointer; display:flex; gap:12px; align-items:flex-start; }
+    .addr.sel { border-color:var(--green); background:var(--green-soft); }
+    .addr .radio { width:18px; height:18px; border-radius:50%; border:2px solid #cbd5e1; margin-top:2px; flex-shrink:0; }
+    .addr.sel .radio { border-color:var(--green); background:var(--green); box-shadow:inset 0 0 0 3px #fff; }
+    .addr .lbl { font-weight:700; } .addr .txt { color:var(--muted); font-size:13px; margin-top:3px; }
+    .badge { font-size:11px; font-weight:700; padding:2px 9px; border-radius:999px; background:var(--green-soft); color:var(--green-d); }
+
+    .slots { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+    .chip { padding:9px 15px; border-radius:8px; border:1.5px solid var(--line); font-size:13px; font-weight:600; background:#fff; color:var(--dark); }
+    .chip.sel { border-color:var(--green); background:var(--green-soft); color:var(--green-d); }
+    .chip:disabled { opacity:.4; cursor:not-allowed; }
+
+    .coupon-row { display:flex; gap:10px; }
+    .coupon-row input { flex:1; text-transform:uppercase; }
+    .applied { display:flex; align-items:center; gap:10px; background:var(--green-soft); border:1px dashed var(--green); border-radius:8px; padding:10px 14px; margin-top:10px; }
+    .applied .code { font-weight:700; color:var(--green-d); }
+    .coupon-msg { font-size:13px; margin-top:8px; min-height:16px; }
+    .coupon-msg.err { color:var(--pink); } .coupon-msg.ok { color:var(--green-d); }
+
+    .pay { border:1.5px solid var(--line); border-radius:10px; margin-bottom:10px; overflow:hidden; }
+    .pay-head { display:flex; align-items:center; gap:12px; padding:14px; cursor:pointer; }
+    .pay.sel { border-color:var(--green); }
+    .pay.sel .pay-head { background:var(--green-soft); }
+    .pay .radio { width:18px; height:18px; border-radius:50%; border:2px solid #cbd5e1; flex-shrink:0; }
+    .pay.sel .radio { border-color:var(--green); background:var(--green); box-shadow:inset 0 0 0 3px #fff; }
+    .pay .ptitle { font-weight:700; } .pay .pico { font-size:20px; }
+    .pay-body { padding:0 14px 14px; display:none; } .pay.sel .pay-body { display:block; }
+    .demo-note { font-size:12px; color:var(--amber); margin-top:8px; }
+
+    /* Summary */
+    .summary { position:sticky; top:20px; }
+    .sum-item { display:flex; justify-content:space-between; gap:8px; font-size:13px; padding:6px 0; color:var(--muted); }
+    .sum-item .n { color:var(--dark); }
+    .sum-line { display:flex; justify-content:space-between; padding:7px 0; font-size:14px; }
+    .sum-line.total { border-top:1px solid var(--line); margin-top:8px; padding-top:12px; font-size:19px; font-weight:800; }
+    .sum-line.total b { color:var(--green-d); }
+    .sum-line .green { color:var(--green-d); font-weight:700; }
+    .place { width:100%; padding:15px; border-radius:10px; background:var(--green); color:#fff; font-weight:700; font-size:16px; margin-top:14px; }
+    .place:hover { background:var(--green-d); } .place:disabled { opacity:.6; cursor:not-allowed; }
+
+    .gate { max-width:460px; margin:80px auto; text-align:center; background:#fff; border:1px solid var(--line); border-radius:16px; padding:40px 30px; box-shadow:var(--shadow); }
+    /* Success */
+    .success { max-width:600px; margin:40px auto; background:#fff; border:1px solid var(--line); border-radius:16px; padding:44px; text-align:center; box-shadow:var(--shadow); }
+    .success .tick { width:74px; height:74px; border-radius:50%; background:var(--green-soft); display:grid; place-items:center; font-size:38px; margin:0 auto 16px; }
+    #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--dark); color:#fff; padding:12px 22px; border-radius:10px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:all .25s; z-index:300; font-weight:600; font-size:14px; }
+    #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    /* ==================== Responsive ==================== */
+    @media (max-width:900px){
+      .summary { position:static; }
+      .success { margin:20px 14px; padding:30px 22px; }
+    }
+    @media (max-width:560px){
+      .topbar { flex-wrap:wrap; padding:14px 16px; }
+      .steps { margin-left:0; flex-basis:100%; }
+      .wrap { padding:20px 14px 50px; }
+      .row2 { grid-template-columns:1fr; }
+      h1.title { font-size:22px; }
+      .card { padding:18px; }
+      .coupon-row { flex-direction:column; }
+      .coupon-row .btn { width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <a class="brand" href="/"><span class="leaf">🥬</span> Cart<b>ify</b></a>
+    <span class="steps">🛒 Cart › <b style="color:var(--green-d)">Checkout</b> › Confirmation</span>
+  </div>
+
+  <!-- Gate -->
+  <div class="gate" id="gate" style="display:none">
+    <h2 id="gateMsg">Please sign in to checkout</h2>
+    <a class="btn btn-green" href="/" style="display:inline-block;margin-top:14px">← Back to store</a>
+  </div>
+
+  <!-- Checkout -->
+  <div class="wrap" id="checkout" style="display:none">
+    <h1 class="title">Checkout</h1>
+    <div class="layout">
+      <div>
+        <!-- ADDRESS -->
+        <div class="card">
+          <h2>📍 Delivery Address</h2>
+          <div class="sub">Choose where to deliver, or add a new address.</div>
+          <div id="addrList"></div>
+          <button class="btn btn-out" id="addAddrBtn" style="margin-top:6px">＋ Add new address</button>
+          <form id="addrForm" style="display:none;margin-top:14px">
+            <div class="row2">
+              <div class="field"><label>Label</label><input name="label" placeholder="Home / Office" required /></div>
+              <div class="field"><label>Phone</label><input name="phone" placeholder="Contact number" /></div>
+            </div>
+            <div class="field"><label>Address line</label><input name="line1" placeholder="Street, area" required /></div>
+            <div class="row2">
+              <div class="field"><label>City</label><input name="city" required /></div>
+              <div class="field"><label>State</label><input name="state" /></div>
+            </div>
+            <div class="field"><label>ZIP / PIN</label><input name="zip" /></div>
+            <button type="submit" class="btn btn-green">Save address</button>
+            <button type="button" class="btn" id="cancelAddr">Cancel</button>
+          </form>
+        </div>
+
+        <!-- DELIVERY SLOT -->
+        <div class="card">
+          <h2>🕒 Delivery Slot</h2>
+          <div class="sub">Pick a day and time that works for you.</div>
+          <div class="slots" id="slotDays"></div>
+          <div class="slots" id="slotTimes"></div>
+        </div>
+
+        <!-- COUPON -->
+        <div class="card">
+          <h2>🎟️ Apply Coupon</h2>
+          <div class="sub">Have a code? Enter it below.</div>
+          <div class="coupon-row">
+            <input id="couponInput" placeholder="Enter coupon code" />
+            <button class="btn btn-green" id="applyCoupon">Apply</button>
+          </div>
+          <div class="coupon-msg" id="couponMsg"></div>
+          <div id="appliedBox"></div>
+        </div>
+
+        <!-- ORDER NOTES -->
+        <div class="card">
+          <h2>📝 Order Notes</h2>
+          <div class="sub">Any special delivery instructions? (optional)</div>
+          <div class="field"><textarea id="orderNotes" rows="3" placeholder="e.g. Leave at the front door, call on arrival…"></textarea></div>
+        </div>
+
+        <!-- PAYMENT -->
+        <div class="card">
+          <h2>💳 Payment Method</h2>
+          <div class="sub">Choose how you'd like to pay.</div>
+          <div id="payList"></div>
+          <div class="demo-note">⚠️ Demo checkout — no real payment is processed.</div>
+        </div>
+      </div>
+
+      <!-- SUMMARY -->
+      <div class="card summary">
+        <h2>🧾 Order Summary</h2>
+        <div id="sumItems"></div>
+        <div id="sumTotals"></div>
+        <button class="place" id="placeOrder">Place Order</button>
+        <a href="/" class="btn" style="display:block;text-align:center;margin-top:10px">← Continue shopping</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success -->
+  <div class="success" id="success" style="display:none">
+    <div class="tick">✅</div>
+    <h1 style="margin:0 0 6px">Order Placed!</h1>
+    <p style="color:var(--muted)" id="successMsg">Thank you for your order.</p>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-green" id="invoiceBtn">🧾 Download GST Invoice</button>
+      <a class="btn" href="/account.html#orders">View my orders</a>
+      <a class="btn" href="/">Continue shopping</a>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const AUTH_API = "/api/auth";
+    const USERS_API = "/api/users";
+    const PROMO_API = "/api/promotions";
+    const ORDERS_API = "/api/orders";
+    const CART_API = "/api/cart";
+    const user = JSON.parse(localStorage.getItem("cartify_user") || "null");
+    const $ = (id) => document.getElementById(id);
+    let toastTimer; function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2600); }
+    const money = (n) => "$" + Number(n||0).toFixed(2);
+    const LS = { get:(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d;}catch{return d;}}, set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)) };
+    const DEFAULT_SETTINGS = { deliveryCharge:5, freeShipThreshold:50, taxPercent:8, gstPercent:18, codEnabled:true, cardEnabled:true, upiEnabled:true };
+    let settings = Object.assign({}, DEFAULT_SETTINGS);
+
+    let cart = LS.get("cartify_cart", []);
+    let coupons = [];
+    let addresses = [], selectedAddr = 0, selectedDay = "", selectedTime = "", coupon = null;
+    let lastOrder = null;
+
+    // ---- Gate ----
+    if (!user) { $("gate").style.display="block"; $("gateMsg").textContent="Please sign in to checkout"; }
+    else if (!cart.length) { $("gate").style.display="block"; $("gateMsg").textContent="🛒 Your cart is empty"; }
+    else { $("checkout").style.display="block"; init(); }
+
+    async function init(){
+      await loadPromotions();
+      await loadAddresses();
+      renderSlots();
+      renderPayments();
+      renderSummary();
+      $("addAddrBtn").onclick = () => { $("addrForm").style.display="block"; $("addAddrBtn").style.display="none"; };
+      $("cancelAddr").onclick = () => { $("addrForm").style.display="none"; $("addAddrBtn").style.display="inline-block"; };
+      $("addrForm").onsubmit = onAddAddress;
+      $("applyCoupon").onclick = onApplyCoupon;
+      $("placeOrder").onclick = onPlaceOrder;
+      $("invoiceBtn").onclick = () => lastOrder && printInvoice(lastOrder);
+    }
+
+    // ---- Promotions (settings + coupons from PromotionsService) ----
+    async function loadPromotions(){
+      try { const r = await fetch(`${PROMO_API}/settings`); if (r.ok) settings = Object.assign({}, DEFAULT_SETTINGS, await r.json()); } catch {}
+      try { const r = await fetch(`${PROMO_API}/coupons`); if (r.ok) coupons = await r.json(); } catch {}
+    }
+
+    // ---- Addresses ----
+    async function loadAddresses(){
+      try { const r = await fetch(`${USERS_API}/addresses/${encodeURIComponent(user.email)}`); addresses = r.ok ? await r.json() : []; } catch { addresses = []; }
+      selectedAddr = Math.max(0, addresses.findIndex(a=>a.isDefault));
+      renderAddresses();
+      if(!addresses.length){ $("addrForm").style.display="block"; $("addAddrBtn").style.display="none"; }
+    }
+    function renderAddresses(){
+      $("addrList").innerHTML = addresses.map((a,i)=>`
+        <div class="addr ${i===selectedAddr?"sel":""}" data-addr="${i}">
+          <div class="radio"></div>
+          <div><div class="lbl">${a.label||"Address"} ${a.isDefault?'<span class="badge">Default</span>':''}</div>
+          <div class="txt">${[a.line1,a.city,a.state,a.zip].filter(Boolean).join(", ")}${a.phone?" · "+a.phone:""}</div></div>
+        </div>`).join("");
+      $("addrList").querySelectorAll("[data-addr]").forEach(el=> el.onclick=()=>{ selectedAddr=+el.dataset.addr; renderAddresses(); });
+    }
+    async function onAddAddress(e){
+      e.preventDefault(); const f=e.target;
+      const a={ label:f.label.value.trim(), line1:f.line1.value.trim(), city:f.city.value.trim(), state:f.state.value.trim(), zip:f.zip.value.trim(), phone:f.phone.value.trim(), isDefault:addresses.length===0 };
+      addresses.push(a);
+      try { await fetch(`${USERS_API}/addresses`, { method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ email:user.email, addresses }) }); } catch {}
+      selectedAddr = addresses.length-1; f.reset(); $("addrForm").style.display="none"; $("addAddrBtn").style.display="inline-block"; renderAddresses(); toast("Address saved");
+    }
+
+    // ---- Delivery slots ----
+    const TIMES = ["9AM – 12PM","12PM – 3PM","3PM – 6PM","6PM – 9PM"];
+    function dayLabels(){ const out=[]; for(let i=0;i<3;i++){ const d=new Date(); d.setDate(d.getDate()+i); out.push({ key:d.toDateString(), label:i===0?"Today":i===1?"Tomorrow":d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"}) }); } return out; }
+    function renderSlots(){
+      const days=dayLabels();
+      selectedDay = selectedDay || days[0].label;
+      $("slotDays").innerHTML = days.map(d=>`<button type="button" class="chip ${d.label===selectedDay?"sel":""}" data-day="${d.label}">${d.label}</button>`).join("");
+      const nowH = new Date().getHours();
+      $("slotTimes").innerHTML = TIMES.map((t,i)=>{ const startH=[9,12,15,18][i]; const disabled = selectedDay==="Today" && nowH>=startH;
+        return `<button type="button" class="chip ${t===selectedTime?"sel":""}" data-time="${t}" ${disabled?"disabled":""}>${t}</button>`; }).join("");
+      $("slotDays").querySelectorAll("[data-day]").forEach(b=>b.onclick=()=>{ selectedDay=b.dataset.day; selectedTime=""; renderSlots(); });
+      $("slotTimes").querySelectorAll("[data-time]").forEach(b=>b.onclick=()=>{ selectedTime=b.dataset.time; renderSlots(); });
+    }
+
+    // ---- Coupon ----
+    function subtotal(){ return cart.reduce((s,i)=>s+Number(i.price)*i.qty,0); }
+    function onApplyCoupon(){
+      const code=$("couponInput").value.trim().toUpperCase(); const msg=$("couponMsg"); msg.className="coupon-msg";
+      if(!code){ msg.classList.add("err"); msg.textContent="Enter a coupon code."; return; }
+      const c=coupons.find(x=>(x.code||"").toUpperCase()===code);
+      if(!c){ msg.classList.add("err"); msg.textContent="Invalid coupon code."; return; }
+      if(c.expiry && new Date(c.expiry) < new Date(new Date().toDateString())){ msg.classList.add("err"); msg.textContent="This coupon has expired."; return; }
+      if(c.minOrder && subtotal() < Number(c.minOrder)){ msg.classList.add("err"); msg.textContent=`Minimum order of ${money(c.minOrder)} required.`; return; }
+      coupon=c; msg.classList.add("ok"); msg.textContent="Coupon applied!";
+      $("appliedBox").innerHTML=`<div class="applied"><span class="code">${c.code}</span><span style="color:var(--muted);font-size:13px">${couponDesc(c)}</span><button class="btn" id="removeCoupon" style="margin-left:auto;padding:5px 10px">Remove</button></div>`;
+      $("removeCoupon").onclick=()=>{ coupon=null; $("appliedBox").innerHTML=""; $("couponMsg").textContent=""; $("couponInput").value=""; renderSummary(); };
+      renderSummary();
+    }
+    function couponDesc(c){ return c.type==="percent"?`${c.value}% off`:c.type==="flat"?`${money(c.value)} off`:"Free shipping"; }
+
+    // ---- Totals ----
+    function computeTotals(){
+      const sub=subtotal(); let discount=0, freeShip=false;
+      if(coupon){ if(coupon.type==="percent") discount=sub*Number(coupon.value)/100; else if(coupon.type==="flat") discount=Math.min(Number(coupon.value),sub); else if(coupon.type==="free_shipping") freeShip=true; }
+      discount=Math.round(discount*100)/100;
+      const taxable=Math.max(0, sub-discount);
+      let delivery = (freeShip || taxable>=Number(settings.freeShipThreshold)) ? 0 : Number(settings.deliveryCharge);
+      const gst=Math.round(taxable*Number(settings.gstPercent)/100*100)/100;
+      const total=Math.round((taxable+delivery+gst)*100)/100;
+      return { sub, discount, delivery, gst, total, freeShip };
+    }
+
+    // ---- Payment ----
+    const PAYMENTS = [
+      { id:"COD", ico:"💵", title:"Cash on Delivery", gate:"codEnabled", body:`<div style="color:var(--muted);font-size:13px">Pay in cash when your order arrives.</div>` },
+      { id:"UPI", ico:"📱", title:"UPI", gate:"upiEnabled", body:`<div class="field"><label>UPI ID</label><input id="pf_upi" placeholder="yourname@bank" /></div>` },
+      { id:"Card", ico:"💳", title:"Credit / Debit Card", gate:"cardEnabled", body:`<div class="field"><label>Card number</label><input id="pf_card" placeholder="1234 5678 9012 3456" inputmode="numeric" /></div><div class="row2"><div class="field"><label>Expiry (MM/YY)</label><input id="pf_exp" placeholder="08/28" /></div><div class="field"><label>CVV</label><input id="pf_cvv" placeholder="123" inputmode="numeric" /></div></div><div class="field"><label>Name on card</label><input id="pf_cardname" placeholder="Full name" /></div>` },
+      { id:"NetBanking", ico:"🏦", title:"Net Banking", body:`<div class="field"><label>Select bank</label><select id="pf_bank"><option>HDFC Bank</option><option>ICICI Bank</option><option>State Bank of India</option><option>Axis Bank</option><option>Kotak Mahindra</option></select></div>` },
+      { id:"Wallet", ico:"👛", title:"Wallet", body:`<div class="field"><label>Select wallet</label><select id="pf_wallet"><option>Paytm</option><option>PhonePe</option><option>Amazon Pay</option><option>Mobikwik</option></select></div>` },
+    ];
+    let selectedPay = "";
+    function renderPayments(){
+      const avail = PAYMENTS.filter(p=>!p.gate || settings[p.gate]);
+      if(!avail.some(p=>p.id===selectedPay)) selectedPay = avail[0] ? avail[0].id : "";
+      $("payList").innerHTML = avail.map(p=>`
+        <div class="pay ${p.id===selectedPay?"sel":""}" data-pay="${p.id}">
+          <div class="pay-head"><div class="radio"></div><span class="pico">${p.ico}</span><span class="ptitle">${p.title}</span></div>
+          <div class="pay-body">${p.body}</div>
+        </div>`).join("");
+      $("payList").querySelectorAll("[data-pay]").forEach(el=> el.querySelector(".pay-head").onclick=()=>{ selectedPay=el.dataset.pay; renderPayments(); });
+    }
+    function validatePayment(){
+      if(selectedPay==="UPI"){ const v=($("pf_upi").value||"").trim(); if(!/^[\w.\-]+@[\w.\-]+$/.test(v)) return "Enter a valid UPI ID (e.g. name@bank)."; }
+      if(selectedPay==="Card"){ const n=($("pf_card").value||"").replace(/\s/g,""); if(!/^\d{12,19}$/.test(n)) return "Enter a valid card number."; if(!/^\d{2}\/\d{2}$/.test(($("pf_exp").value||"").trim())) return "Enter expiry as MM/YY."; if(!/^\d{3,4}$/.test(($("pf_cvv").value||"").trim())) return "Enter a valid CVV."; }
+      return null;
+    }
+
+    // ---- Summary ----
+    function renderSummary(){
+      $("sumItems").innerHTML = cart.map(i=>`<div class="sum-item"><span class="n">${i.name} ×${i.qty}</span><span>${money(i.price*i.qty)}</span></div>`).join("");
+      const t=computeTotals();
+      $("sumTotals").innerHTML = `
+        <div class="sum-line"><span>Subtotal</span><span>${money(t.sub)}</span></div>
+        ${t.discount>0?`<div class="sum-line"><span>Discount ${coupon?`(${coupon.code})`:""}</span><span class="green">− ${money(t.discount)}</span></div>`:""}
+        <div class="sum-line"><span>Delivery</span><span>${t.delivery>0?money(t.delivery):'<span class="green">FREE</span>'}</span></div>
+        <div class="sum-line"><span>GST (${settings.gstPercent}%)</span><span>${money(t.gst)}</span></div>
+        <div class="sum-line total"><span>Total</span><b>${money(t.total)}</b></div>`;
+    }
+
+    // ---- Place order ----
+    async function onPlaceOrder(){
+      if(!addresses.length){ toast("Please add a delivery address"); return; }
+      if(!selectedTime){ toast("Please pick a delivery slot"); return; }
+      if(!selectedPay){ toast("Please choose a payment method"); return; }
+      const payErr=validatePayment(); if(payErr){ toast(payErr); return; }
+      const t=computeTotals(); const addr=addresses[selectedAddr];
+      const payLabel=(PAYMENTS.find(p=>p.id===selectedPay)||{}).title||selectedPay;
+      const payload = {
+        customerEmail:user.email, customerName:user.fullName||user.email,
+        items: cart.map(i=>({ productId:parseInt(i.id)||0, name:i.name, price:Number(i.price), quantity:i.qty })),
+        subtotal:t.sub, discount:t.discount, deliveryCharge:t.delivery, tax:t.gst, total:t.total,
+        couponCode: coupon?coupon.code:null,
+        deliverySlot: `${selectedDay}, ${selectedTime}`,
+        notes: $("orderNotes").value.trim(),
+        paymentMethod: payLabel,
+        paymentStatus: selectedPay==="COD" ? "Pending" : "Paid",
+        shippingAddress: { label:addr.label, line1:addr.line1, city:addr.city, state:addr.state, zip:addr.zip, phone:addr.phone }
+      };
+      const btn=$("placeOrder"); btn.disabled=true; btn.textContent="Placing order…";
+      try {
+        const res=await fetch(ORDERS_API,{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
+        if(!res.ok) throw new Error(await res.text());
+        const order=await res.json(); lastOrder=order;
+        localStorage.setItem("cartify_cart","[]");
+        fetch(`${CART_API}/${encodeURIComponent(user.email)}`, { method:"DELETE" }).catch(()=>{});
+        $("checkout").style.display="none"; $("success").style.display="block";
+        $("successMsg").textContent = `Order #${order.id} confirmed — ${payLabel}${selectedPay==="COD"?" (pay on delivery)":" (paid)"}. Total ${money(order.total)}.`;
+        window.scrollTo({top:0,behavior:"smooth"});
+      } catch(err){ toast("Checkout failed — is OrderService running on :5090?"); btn.disabled=false; btn.textContent="Place Order"; }
+    }
+
+    // ---- GST Invoice ----
+    function printInvoice(o){
+      const addr=o.shippingAddress||{};
+      const rows=(o.items||[]).map(it=>`<tr><td>${it.name}</td><td style="text-align:center">${it.quantity}</td><td style="text-align:right">${money(it.price)}</td><td style="text-align:right">${money(it.price*it.quantity)}</td></tr>`).join("");
+      const w=window.open("","_blank");
+      w.document.write(`<html><head><title>GST Invoice #${o.id}</title><style>
+        body{font-family:system-ui,Arial;padding:40px;color:#253d4e;max-width:720px;margin:auto}
+        .hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #3bb77e;padding-bottom:14px}
+        h1{color:#3bb77e;margin:0} .muted{color:#7e7e7e;font-size:13px}
+        table{width:100%;border-collapse:collapse;margin-top:18px} td,th{padding:9px;border-bottom:1px solid #eee} th{text-align:left;font-size:12px;color:#7e7e7e}
+        .tot td{border:none;padding:4px 9px} .grand{font-weight:800;font-size:18px;color:#29a56c}
+        .box{background:#f4f6fa;border-radius:10px;padding:14px;margin-top:16px;font-size:14px}</style></head><body>
+        <div class="hd"><div><h1>🛒 Cartify</h1><div class="muted">Tax Invoice / GST Invoice</div></div>
+        <div style="text-align:right"><div><b>Invoice #${o.id}</b></div><div class="muted">${new Date(o.createdAt).toLocaleString()}</div><div class="muted">GSTIN: 29ABCDE1234F1Z5</div></div></div>
+        <div class="box"><b>Bill To:</b> ${o.customerName} (${o.customerEmail})<br>
+        ${addr.label?`${addr.label} — `:""}${[addr.line1,addr.city,addr.state,addr.zip].filter(Boolean).join(", ")}${addr.phone?" · "+addr.phone:""}<br>
+        <span class="muted">Delivery slot:</span> ${o.deliverySlot||"—"} &nbsp; <span class="muted">Payment:</span> ${o.paymentMethod} (${o.paymentStatus})${o.couponCode?` &nbsp; <span class="muted">Coupon:</span> ${o.couponCode}`:""}</div>
+        <table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>
+        <table class="tot" style="margin-top:10px;width:280px;margin-left:auto"><tbody>
+          <tr><td>Subtotal</td><td style="text-align:right">${money(o.subtotal)}</td></tr>
+          ${o.discount>0?`<tr><td>Discount</td><td style="text-align:right">− ${money(o.discount)}</td></tr>`:""}
+          <tr><td>Delivery</td><td style="text-align:right">${o.deliveryCharge>0?money(o.deliveryCharge):"FREE"}</td></tr>
+          <tr><td>GST</td><td style="text-align:right">${money(o.tax)}</td></tr>
+          <tr class="grand"><td>Total</td><td style="text-align:right">${money(o.total)}</td></tr>
+        </tbody></table>
+        ${o.notes?`<div class="box"><b>Notes:</b> ${o.notes}</div>`:""}
+        <p class="muted" style="margin-top:26px;text-align:center">This is a computer-generated invoice. Thank you for shopping with Cartify!</p>
+        <script>window.onload=()=>window.print()<\/script></body></html>`);
+      w.document.close();
+    }
+  </script>
+</body>
+</html>

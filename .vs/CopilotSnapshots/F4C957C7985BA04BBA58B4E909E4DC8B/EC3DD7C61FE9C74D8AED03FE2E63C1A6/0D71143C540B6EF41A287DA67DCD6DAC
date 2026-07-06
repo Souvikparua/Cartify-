@@ -1,0 +1,44 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
+
+namespace Cartify.AuthService.Data;
+
+public sealed class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
+{
+    public AuthDbContext CreateDbContext(string[] args)
+    {
+        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        var basePath = Directory.GetCurrentDirectory();
+
+        IConfigurationRoot configuration;
+
+        try
+        {
+            configuration = new ConfigurationBuilder()
+                .SetBasePath(basePath)
+                .AddJsonFile("appsettings.json", optional: false)
+                .AddJsonFile($"appsettings.{environment}.json", optional: true)
+                .AddEnvironmentVariables()
+                .Build();
+        }
+        catch
+        {
+            configuration = new ConfigurationBuilder()
+                .SetBasePath(basePath)
+                .AddEnvironmentVariables()
+                .Build();
+        }
+
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        }
+
+        var optionsBuilder = new DbContextOptionsBuilder<AuthDbContext>();
+        optionsBuilder.UseSqlServer(connectionString);
+
+        return new AuthDbContext(optionsBuilder.Options);
+    }
+}

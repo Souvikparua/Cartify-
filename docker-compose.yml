@@ -1,0 +1,86 @@
+# Cartify — full microservices stack (SQL Server + 6 services + API gateway).
+# Run:   docker compose up --build
+# Open:  http://localhost:5030
+name: cartify
+
+x-common: &common
+  restart: unless-stopped
+  depends_on:
+    sqlserver:
+      condition: service_healthy
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Cartify_Str0ng!Pass"
+    ports:
+      - "14330:1433"   # host 14330 -> container 1433 (avoids clashing with local SQL Server)
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Cartify_Str0ng!Pass' -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 20s
+
+  authservice:
+    <<: *common
+    build: { context: ., dockerfile: Dockerfile, args: { PROJECT: Cartify.AuthService } }
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CartifyAuthDB;User Id=sa;Password=Cartify_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False"
+
+  productservice:
+    <<: *common
+    build: { context: ., dockerfile: Dockerfile, args: { PROJECT: Cartify.ProductService } }
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CartifyProductDB;User Id=sa;Password=Cartify_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False"
+
+  orderservice:
+    <<: *common
+    build: { context: ., dockerfile: Dockerfile, args: { PROJECT: Cartify.OrderService } }
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CartifyOrderDB;User Id=sa;Password=Cartify_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False"
+
+  cartservice:
+    <<: *common
+    build: { context: ., dockerfile: Dockerfile, args: { PROJECT: Cartify.CartService } }
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CartifyCartDB;User Id=sa;Password=Cartify_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False"
+
+  userservice:
+    <<: *common
+    build: { context: ., dockerfile: Dockerfile, args: { PROJECT: Cartify.UserService } }
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CartifyUserDB;User Id=sa;Password=Cartify_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False"
+
+  promotionsservice:
+    <<: *common
+    build: { context: ., dockerfile: Dockerfile, args: { PROJECT: Cartify.PromotionsService } }
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CartifyPromotionsDB;User Id=sa;Password=Cartify_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False"
+
+  gateway:
+    build: { context: ., dockerfile: Dockerfile, args: { PROJECT: Cartify.Gateway } }
+    restart: unless-stopped
+    ports:
+      - "5030:8080"
+    environment:
+      ReverseProxy__Clusters__auth__Destinations__d1__Address: "http://authservice:8080"
+      ReverseProxy__Clusters__users__Destinations__d1__Address: "http://userservice:8080"
+      ReverseProxy__Clusters__products__Destinations__d1__Address: "http://productservice:8080"
+      ReverseProxy__Clusters__orders__Destinations__d1__Address: "http://orderservice:8080"
+      ReverseProxy__Clusters__cart__Destinations__d1__Address: "http://cartservice:8080"
+      ReverseProxy__Clusters__promotions__Destinations__d1__Address: "http://promotionsservice:8080"
+    depends_on:
+      - authservice
+      - productservice
+      - orderservice
+      - cartservice
+      - userservice
+      - promotionsservice
+
+volumes:
+  mssql-data:

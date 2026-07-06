@@ -1,0 +1,16 @@
+﻿{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+  {
+    
+      "ConnectionStrings": {
+        "DefaultConnection": "Server=DESKTOP-G1CLSFT\\SQLEXPRESS;Database=CartifyAuthDB;Trusted_Connection=True;"
+      }
+    
+  }
+}

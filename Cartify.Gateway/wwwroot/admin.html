@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cartify — Admin Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green:#3bb77e; --green-d:#29a56c; --green-soft:#e6f7ef;
+      --sidebar:#1e293b; --sidebar-2:#0f172a; --sidebar-mut:#94a3b8;
+      --line:#e5e7eb; --dark:#1f2937; --muted:#6b7280; --bg:#f3f4f6; --card:#fff;
+      --pink:#ef4767; --amber:#f59e0b; --blue:#3b82f6; --violet:#8b5cf6;
+      --shadow:0 6px 24px rgba(0,0,0,.07); --radius:12px;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Quicksand",system-ui,sans-serif; background:var(--bg); color:var(--dark); }
+    a { color:inherit; text-decoration:none; }
+    button { font-family:inherit; cursor:pointer; border:none; }
+    input,select,textarea { font-family:inherit; }
+
+    /* Layout */
+    .app { display:flex; min-height:100vh; }
+    .sidebar { width:250px; background:var(--sidebar); color:#e2e8f0; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto; }
+    .sb-brand { padding:20px 20px 14px; font-size:19px; font-weight:700; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,.08); }
+    .sb-group { padding:14px 14px 4px; }
+    .sb-label { font-size:11px; text-transform:uppercase; letter-spacing:.7px; color:var(--sidebar-mut); padding:6px 10px; font-weight:700; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:9px; color:#cbd5e1; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:2px; }
+    .nav-item:hover { background:rgba(255,255,255,.06); color:#fff; }
+    .nav-item.active { background:var(--green); color:#fff; }
+    .main { flex:1; min-width:0; display:flex; flex-direction:column; }
+    .topbar { background:#fff; border-bottom:1px solid var(--line); padding:14px 26px; display:flex; align-items:center; gap:14px; position:sticky; top:0; z-index:20; }
+    .topbar h1 { font-size:19px; margin:0; }
+    .topbar .sp { margin-left:auto; }
+    .btn { padding:9px 16px; border-radius:9px; font-weight:600; font-size:14px; background:#eef1f5; color:var(--dark); display:inline-flex; align-items:center; gap:8px; }
+    .btn:hover { background:#e2e6ec; }
+    .btn-green { background:var(--green); color:#fff; } .btn-green:hover { background:var(--green-d); }
+    .btn-sm { padding:6px 11px; font-size:13px; border-radius:7px; }
+    .content { padding:26px; }
+    .section { display:none; }
+
+    /* Cards & tables */
+    .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow); margin-bottom:20px; }
+    .card h2 { margin:0 0 4px; font-size:19px; }
+    .card .sub { color:var(--muted); font-size:13px; margin-bottom:16px; }
+    .grid2 { display:grid; grid-template-columns:360px 1fr; gap:20px; align-items:start; }
+    .hamburger { display:none; background:none; border:none; font-size:22px; cursor:pointer; color:var(--dark); padding:2px 12px 2px 0; }
+    .sb-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:90; }
+    @media (max-width:900px){
+      .grid2 { grid-template-columns:1fr; }
+      .sidebar { position:fixed; top:0; left:0; height:100vh; transform:translateX(-100%); transition:transform .25s ease; z-index:100; }
+      .sidebar.open { transform:translateX(0); }
+      .sb-backdrop.open { display:block; }
+      .hamburger { display:inline-flex; }
+      .content { padding:18px 16px; }
+      .admin-tabs { padding:0 16px; } .orders-wrap { padding:16px; }
+      .stats { grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+    }
+    @media (max-width:560px){
+      .topbar { flex-wrap:wrap; gap:8px; padding:12px 16px; }
+      .topbar h1 { font-size:17px; }
+      .stat .v { font-size:20px; } th,td { padding:9px 8px; font-size:13px; }
+    }
+    table { width:100%; border-collapse:collapse; }
+    th,td { text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); font-size:14px; }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+    .tbl-wrap { overflow-x:auto; }
+
+    .field { margin-bottom:13px; }
+    .field label { display:block; font-size:13px; color:var(--muted); margin-bottom:5px; font-weight:600; }
+    .field input,.field select,.field textarea { width:100%; padding:10px 12px; border-radius:8px; font-size:14px; border:1px solid var(--line); background:#fff; color:var(--dark); outline:none; }
+    .field input:focus,.field select:focus,.field textarea:focus { border-color:var(--green); }
+    .field textarea { resize:vertical; min-height:64px; }
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .submit { width:100%; padding:12px; border-radius:9px; background:var(--green); color:#fff; font-weight:700; font-size:15px; margin-top:4px; }
+    .submit:hover { background:var(--green-d); }
+    .form-msg { font-size:13px; margin-top:10px; text-align:center; min-height:18px; }
+    .form-msg.err { color:var(--pink); } .form-msg.ok { color:var(--green-d); }
+    .imgprev { width:100%; height:130px; border-radius:9px; border:1px dashed var(--line); display:grid; place-items:center; color:var(--muted); font-size:13px; overflow:hidden; margin-bottom:6px; background:#fafafa; }
+    .imgprev img { width:100%; height:100%; object-fit:cover; }
+
+    /* Stat cards */
+    .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:18px; margin-bottom:22px; }
+    .stat { background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); display:flex; align-items:center; gap:16px; }
+    .stat .ico { width:52px; height:52px; border-radius:13px; display:grid; place-items:center; font-size:24px; flex-shrink:0; }
+    .stat .v { font-size:24px; font-weight:700; }
+    .stat .l { color:var(--muted); font-size:13px; font-weight:600; }
+    .charts { display:grid; grid-template-columns:1.5fr 1fr; gap:20px; }
+    @media (max-width:900px){ .charts { grid-template-columns:1fr; } }
+
+    .badge { font-size:12px; font-weight:700; padding:3px 11px; border-radius:999px; display:inline-block; }
+    .b-green{ background:var(--green-soft); color:var(--green-d);} .b-amber{ background:#fef3c7; color:#b45309;}
+    .b-blue{ background:#dbeafe; color:#1d4ed8;} .b-pink{ background:#fde2e8; color:#be123c;} .b-gray{ background:#eef1f5; color:#475569;}
+    .pill-btn { padding:6px 10px; border-radius:7px; font-size:12px; font-weight:700; }
+    .thumb-sm { width:42px; height:42px; border-radius:8px; background:#f1f5f9; display:grid; place-items:center; font-size:20px; overflow:hidden; }
+    .thumb-sm img { width:100%; height:100%; object-fit:cover; }
+    .note { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; font-size:13px; padding:10px 14px; border-radius:9px; margin-bottom:16px; }
+    .subtabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+    .subtab { padding:8px 16px; border-radius:999px; font-size:13px; font-weight:700; background:#eef1f5; color:var(--muted); }
+    .subtab.active { background:var(--green); color:#fff; }
+    .empty { text-align:center; color:var(--muted); padding:30px; }
+    .act { display:inline-flex; gap:6px; }
+    .link-red { color:var(--pink); font-weight:700; font-size:13px; }
+    .link-blue { color:var(--blue); font-weight:700; font-size:13px; }
+
+    /* Gate */
+    .gate { max-width:460px; margin:80px auto; text-align:center; background:#fff; border:1px solid var(--line); border-radius:16px; padding:40px 30px; box-shadow:var(--shadow); }
+    #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--dark); color:#fff; padding:12px 22px; border-radius:10px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:all .25s; z-index:300; font-weight:600; font-size:14px; }
+    #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+  <!-- Access gate -->
+  <div class="gate" id="gate" style="display:none">
+    <h2>🔒 Admin access required</h2>
+    <p id="gateMsg" style="color:var(--muted)">Please sign in with an admin account.</p>
+    <a class="btn btn-green" href="/" style="margin-top:16px">Go to store &amp; sign in</a>
+  </div>
+
+  <div class="app" id="app" style="display:none">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sb-brand">👨‍💼 <span>Admin Panel</span></div>
+      <div class="sb-group">
+        <div class="nav-item active" data-section="dashboard">📊 <span>Dashboard</span></div>
+      </div>
+      <div class="sb-group">
+        <div class="sb-label">Product Management</div>
+        <div class="nav-item" data-section="products">📦 <span>Products</span></div>
+        <div class="nav-item" data-section="bulk">📥 <span>Bulk Upload</span></div>
+        <div class="nav-item" data-section="categories">🗂️ <span>Categories</span></div>
+        <div class="nav-item" data-section="brands">🏷️ <span>Brands</span></div>
+        <div class="nav-item" data-section="variants">🎨 <span>Variants</span></div>
+        <div class="nav-item" data-section="inventory">📊 <span>Inventory</span></div>
+      </div>
+      <div class="sb-group">
+        <div class="sb-label">Order Management</div>
+        <div class="nav-item" data-section="orders">🧾 <span>Orders</span></div>
+      </div>
+      <div class="sb-group">
+        <div class="sb-label">Customer Management</div>
+        <div class="nav-item" data-section="customers">👥 <span>Customers</span></div>
+      </div>
+      <div class="sb-group">
+        <div class="sb-label">Marketing</div>
+        <div class="nav-item" data-section="coupons">🎟️ <span>Coupons</span></div>
+        <div class="nav-item" data-section="banners">🖼️ <span>Banners</span></div>
+      </div>
+      <div class="sb-group">
+        <div class="sb-label">Insights</div>
+        <div class="nav-item" data-section="reports">📈 <span>Reports</span></div>
+        <div class="nav-item" data-section="settings">⚙️ <span>Settings</span></div>
+      </div>
+    </aside>
+    <div class="sb-backdrop" id="sbBackdrop"></div>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <button class="hamburger" id="hamburger" aria-label="Open menu">☰</button>
+        <h1 id="pageTitle">Dashboard</h1>
+        <div class="sp"></div>
+        <span class="badge b-green" id="whoami">admin</span>
+        <a class="btn" href="/">← Store</a>
+        <button class="btn" id="logoutBtn">Logout</button>
+      </div>
+      <div class="content">
+        <!-- DASHBOARD -->
+        <div class="section" id="sec-dashboard">
+          <div class="stats" id="statCards"></div>
+          <div class="charts">
+            <div class="card"><h2>Revenue — last 7 days</h2><div class="tbl-wrap" id="chartRevenue"></div></div>
+            <div class="card"><h2>Products by Category</h2><div id="chartCats"></div></div>
+          </div>
+          <div class="card"><h2>Recent Orders</h2><div class="tbl-wrap" id="recentOrders"></div></div>
+        </div>
+
+        <!-- PRODUCTS -->
+        <div class="section" id="sec-products">
+          <div class="grid2">
+            <div class="card">
+              <h2 id="prodFormTitle">Add Product</h2>
+              <div class="sub">New products appear on the storefront instantly.</div>
+              <form id="productForm">
+                <input type="hidden" name="id" />
+                <div class="field"><label>Product name *</label><input name="name" required placeholder="e.g. Organic Bananas" /></div>
+                <div class="row2">
+                  <div class="field"><label>Category</label><select name="category" id="prodCatSelect"></select></div>
+                  <div class="field"><label>Brand</label><select name="brand" id="prodBrandSelect"></select></div>
+                </div>
+                <div class="row2">
+                  <div class="field"><label>Price ($)</label><input type="number" name="price" step="0.01" min="0" value="0" required /></div>
+                  <div class="field"><label>Stock</label><input type="number" name="stock" min="0" value="0" /></div>
+                </div>
+                <div class="field"><label>Barcode / SKU <span style="color:var(--muted)">(for barcode search)</span></label><input name="barcode" placeholder="e.g. 8901234567890" /></div>
+                <div class="field"><label>Description</label><textarea name="description" placeholder="Short description…"></textarea></div>
+                <div class="field">
+                  <label>Product image</label>
+                  <div class="imgprev" id="imgPrev">No image selected</div>
+                  <input type="file" id="imgFile" accept="image/*" />
+                  <input type="text" id="imgUrl" placeholder="or paste image URL" style="margin-top:6px" />
+                </div>
+                <button type="submit" class="submit" id="prodSubmit">＋ Add Product</button>
+                <button type="button" class="btn" id="prodCancelEdit" style="width:100%;justify-content:center;margin-top:8px;display:none">Cancel edit</button>
+                <div class="form-msg" id="prodMsg"></div>
+              </form>
+            </div>
+            <div class="card">
+              <h2>All Products <span class="badge b-gray" id="prodCount">—</span></h2>
+              <div class="tbl-wrap" id="prodTable"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BULK UPLOAD -->
+        <div class="section" id="sec-bulk">
+          <div class="card">
+            <h2>Bulk Product Upload</h2>
+            <div class="sub">Upload a CSV (Excel → Save As CSV). Columns: <b>name, category, price, stock, description</b>.</div>
+            <button class="btn btn-sm" id="csvTemplate">⬇ Download CSV template</button>
+            <div class="field" style="margin-top:14px"><input type="file" id="csvFile" accept=".csv,text/csv" /></div>
+            <button class="btn btn-green" id="csvUpload">Upload &amp; Create Products</button>
+            <div id="bulkResult" style="margin-top:14px"></div>
+          </div>
+        </div>
+
+        <!-- CATEGORIES -->
+        <div class="section" id="sec-categories">
+          <div class="grid2">
+            <div class="card">
+              <h2>Add Category</h2>
+              <form id="catForm">
+                <div class="field"><label>Category name</label><input name="name" required placeholder="e.g. Beverages" /></div>
+                <button type="submit" class="submit">＋ Add Category</button>
+              </form>
+            </div>
+            <div class="card"><h2>Categories</h2><div class="tbl-wrap" id="catTable"></div></div>
+          </div>
+        </div>
+
+        <!-- BRANDS -->
+        <div class="section" id="sec-brands">
+          <div class="note">Stored locally in your browser (no Brand column in the Product API yet).</div>
+          <div class="grid2">
+            <div class="card">
+              <h2>Add Brand</h2>
+              <form id="brandForm">
+                <div class="field"><label>Brand name</label><input name="name" required placeholder="e.g. FreshFarm" /></div>
+                <button type="submit" class="submit">＋ Add Brand</button>
+              </form>
+            </div>
+            <div class="card"><h2>Brands</h2><div class="tbl-wrap" id="brandTable"></div></div>
+          </div>
+        </div>
+
+        <!-- VARIANTS -->
+        <div class="section" id="sec-variants">
+          <div class="note">Stored locally in your browser — demo of product variant attributes.</div>
+          <div class="grid2">
+            <div class="card">
+              <h2>Add Variant Attribute</h2>
+              <form id="variantForm">
+                <div class="field"><label>Attribute</label><input name="attr" required placeholder="e.g. Size" /></div>
+                <div class="field"><label>Options (comma separated)</label><input name="opts" required placeholder="S, M, L, XL" /></div>
+                <button type="submit" class="submit">＋ Add Variant</button>
+              </form>
+            </div>
+            <div class="card"><h2>Variants</h2><div class="tbl-wrap" id="variantTable"></div></div>
+          </div>
+        </div>
+
+        <!-- INVENTORY -->
+        <div class="section" id="sec-inventory">
+          <div class="card">
+            <h2>Inventory Management</h2>
+            <div class="sub">Update stock levels — saved to the Product service.</div>
+            <div class="tbl-wrap" id="invTable"></div>
+          </div>
+        </div>
+
+        <!-- ORDERS -->
+        <div class="section" id="sec-orders">
+          <div class="card">
+            <h2>Order Management <span class="badge b-gray" id="orderCount">—</span></h2>
+            <div class="sub">Update status, cancel, refund, or generate an invoice.</div>
+            <div class="tbl-wrap" id="orderTable"></div>
+          </div>
+        </div>
+
+        <!-- CUSTOMERS -->
+        <div class="section" id="sec-customers">
+          <div class="card">
+            <h2>Customer Management <span class="badge b-gray" id="custCount">—</span></h2>
+            <div class="sub">View customers, block/unblock, and see purchase history.</div>
+            <div class="tbl-wrap" id="custTable"></div>
+          </div>
+          <div class="card" id="historyCard" style="display:none">
+            <h2 id="historyTitle">Purchase History</h2>
+            <div class="tbl-wrap" id="historyTable"></div>
+          </div>
+        </div>
+
+        <!-- COUPONS -->
+        <div class="section" id="sec-coupons">
+          <div class="note">Coupons are saved locally and can be applied at checkout on the store.</div>
+          <div class="grid2">
+            <div class="card">
+              <h2>Create Coupon</h2>
+              <form id="couponForm">
+                <div class="field"><label>Code</label><input name="code" required placeholder="SAVE20" style="text-transform:uppercase" /></div>
+                <div class="field"><label>Type</label>
+                  <select name="type"><option value="percent">Percentage discount</option><option value="flat">Flat discount</option><option value="free_shipping">Free shipping</option></select>
+                </div>
+                <div class="row2">
+                  <div class="field"><label>Value</label><input type="number" name="value" min="0" step="0.01" value="0" /></div>
+                  <div class="field"><label>Min order ($)</label><input type="number" name="minOrder" min="0" step="0.01" value="0" /></div>
+                </div>
+                <div class="field"><label>Expiry date</label><input type="date" name="expiry" /></div>
+                <button type="submit" class="submit">＋ Create Coupon</button>
+              </form>
+            </div>
+            <div class="card"><h2>Coupons</h2><div class="tbl-wrap" id="couponTable"></div></div>
+          </div>
+        </div>
+
+        <!-- BANNERS -->
+        <div class="section" id="sec-banners">
+          <div class="note">The first active banner replaces the homepage hero on the store.</div>
+          <div class="grid2">
+            <div class="card">
+              <h2>Add Banner</h2>
+              <form id="bannerForm">
+                <div class="field"><label>Title</label><input name="title" required placeholder="Fresh Groceries Big Discount" /></div>
+                <div class="field"><label>Subtitle</label><input name="subtitle" placeholder="Save up to 50% off…" /></div>
+                <div class="row2">
+                  <div class="field"><label>Type</label><select name="type"><option>Homepage</option><option>Promotional</option></select></div>
+                  <div class="field"><label>Accent color</label><input type="color" name="color" value="#3bb77e" /></div>
+                </div>
+                <button type="submit" class="submit">＋ Add Banner</button>
+              </form>
+            </div>
+            <div class="card"><h2>Banners</h2><div class="tbl-wrap" id="bannerTable"></div></div>
+          </div>
+        </div>
+
+        <!-- REPORTS -->
+        <div class="section" id="sec-reports">
+          <div class="card">
+            <h2>Reports</h2>
+            <div class="subtabs" id="reportTabs">
+              <button class="subtab active" data-rep="sales">Sales</button>
+              <button class="subtab" data-rep="product">Product</button>
+              <button class="subtab" data-rep="customer">Customer</button>
+              <button class="subtab" data-rep="inventory">Inventory</button>
+              <button class="subtab" data-rep="gst">GST</button>
+            </div>
+            <button class="btn btn-sm" id="repExport">⬇ Export CSV</button>
+            <button class="btn btn-sm" id="repPrint">🖨 Print</button>
+            <div class="tbl-wrap" id="reportBody" style="margin-top:14px"></div>
+          </div>
+        </div>
+
+        <!-- SETTINGS -->
+        <div class="section" id="sec-settings">
+          <div class="note">Settings are saved locally; delivery &amp; tax are applied to the store cart.</div>
+          <div class="subtabs" id="setTabs">
+            <button class="subtab active" data-set="delivery">Delivery</button>
+            <button class="subtab" data-set="tax">Tax / GST</button>
+            <button class="subtab" data-set="payment">Payment</button>
+            <button class="subtab" data-set="email">Email</button>
+            <button class="subtab" data-set="sms">SMS</button>
+          </div>
+          <div class="card" id="setBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const AUTH_API = "/api/auth";
+    const USERS_API = "/api/auth/users";
+    const PRODUCTS_API = "/api/products";
+    const ORDERS_API = "/api/orders";
+    const PROMO_API = "/api/promotions";
+    const user = JSON.parse(localStorage.getItem("cartify_user") || "null");
+    const $ = (id) => document.getElementById(id);
+    let toastTimer;
+    function toast(m){ const t=$("toast"); t.textContent=m; t.classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove("show"),2400); }
+    const money = (n) => "$" + Number(n||0).toFixed(2);
+
+    // ---- Access gate ----
+    if (!user || user.role !== "Admin") {
+      $("gate").style.display = "block";
+      if (user) $("gateMsg").textContent = `Signed in as ${user.email} (${user.role}). Not an admin.`;
+    } else {
+      $("app").style.display = "flex";
+      $("whoami").textContent = user.fullName || user.email;
+      // initRouter() is started at the very end, once TITLES/RENDER and all handlers are defined.
+    }
+    $("logoutBtn").onclick = () => { localStorage.removeItem("cartify_user"); location.href = "/"; };
+
+    // ---- Local storage stores ----
+    const LS = {
+      get:(k,d)=>{ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch{ return d; } },
+      set:(k,v)=>localStorage.setItem(k, JSON.stringify(v))
+    };
+    const DEFAULT_SETTINGS = { deliveryCharge:5, freeShipThreshold:50, taxPercent:8, gstPercent:18, codEnabled:true, cardEnabled:true, upiEnabled:false, emailFrom:"store@cartify.com", smtpHost:"", smsProvider:"None", smsKey:"" };
+    let settingsCache = null;
+    async function loadSettings(){ try { const r = await fetch(`${PROMO_API}/settings`); if(r.ok) settingsCache = Object.assign({}, DEFAULT_SETTINGS, await r.json()); } catch {} if(!settingsCache) settingsCache = Object.assign({}, DEFAULT_SETTINGS); return settingsCache; }
+    const getSettings = () => settingsCache || Object.assign({}, DEFAULT_SETTINGS);
+
+    // ---- API cache ----
+    let cache = {};
+    async function apiGet(url){ const r=await fetch(url); if(!r.ok) throw new Error(); return r.json(); }
+    async function getProducts(f){ if(!cache.products||f){ try{cache.products=await apiGet(PRODUCTS_API);}catch{cache.products=[];} } return cache.products; }
+    async function getOrders(f){ if(!cache.orders||f){ try{cache.orders=await apiGet(ORDERS_API);}catch{cache.orders=[];} } return cache.orders; }
+    async function getUsers(f){ if(!cache.users||f){ try{cache.users=await apiGet(USERS_API);}catch{cache.users=[];} } return cache.users; }
+
+    // ---- Router ----
+    const TITLES = { dashboard:"Dashboard", products:"Products", bulk:"Bulk Upload", categories:"Categories", brands:"Brands", variants:"Variants", inventory:"Inventory", orders:"Orders", customers:"Customers", coupons:"Coupons", banners:"Banners", reports:"Reports", settings:"Settings" };
+    function initRouter(){
+      document.querySelectorAll(".nav-item").forEach(n => n.onclick = () => showSection(n.dataset.section));
+      window.addEventListener("hashchange", () => showSection(location.hash.slice(1) || "dashboard"));
+      showSection(location.hash.slice(1) || "dashboard");
+    }
+    function showSection(id){
+      if(!TITLES[id]) id="dashboard";
+      document.querySelectorAll(".section").forEach(s => s.style.display = (s.id==="sec-"+id)?"block":"none");
+      document.querySelectorAll(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.section===id));
+      $("pageTitle").textContent = TITLES[id];
+      if(location.hash.slice(1)!==id) location.hash=id;
+      RENDER[id] && RENDER[id]();
+      if(window.innerWidth<=900) closeSidebar();
+    }
+    function closeSidebar(){ document.querySelector(".sidebar").classList.remove("open"); $("sbBackdrop").classList.remove("open"); }
+
+    // ================= DASHBOARD =================
+    function svgBars(data, color){
+      const w=560,h=200,pad=34, max=Math.max(1,...data.map(d=>d.value));
+      const bw=(w-pad*2)/data.length;
+      const bars=data.map((d,i)=>{ const bh=(d.value/max)*(h-pad*2); const x=pad+i*bw+bw*0.15; const y=h-pad-bh;
+        return `<rect x="${x}" y="${y}" width="${bw*0.7}" height="${Math.max(bh,1)}" rx="4" fill="${color}"/>
+        <text x="${x+bw*0.35}" y="${h-pad+15}" font-size="10" fill="#6b7280" text-anchor="middle">${d.label}</text>
+        <text x="${x+bw*0.35}" y="${y-5}" font-size="10" fill="#374151" text-anchor="middle">${d.value?Math.round(d.value):''}</text>`;
+      }).join("");
+      return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="min-width:420px"><line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="#e5e7eb"/>${bars}</svg>`;
+    }
+    function hBars(data, color){
+      const max=Math.max(1,...data.map(d=>d.value));
+      return data.map(d=>`<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span>${d.label}</span><b>${d.value}</b></div>
+        <div style="background:#eef1f5;border-radius:6px;height:9px"><div style="width:${(d.value/max)*100}%;height:9px;border-radius:6px;background:${color}"></div></div>
+      </div>`).join("") || `<div class="empty">No data</div>`;
+    }
+    async function renderDashboard(){
+      const [orders,users,products]=await Promise.all([getOrders(),getUsers(),getProducts()]);
+      const revenue=orders.reduce((s,o)=>s+Number(o.total),0);
+      const paid=orders.filter(o=>o.status!=="Cancelled"&&o.status!=="Refunded");
+      const sales=paid.reduce((s,o)=>s+Number(o.total),0);
+      const customers=users.filter(u=>u.role==="Customer").length;
+      const cards=[
+        {l:"Total Sales",v:money(sales),i:"💰",bg:"#e6f7ef"},
+        {l:"Orders",v:orders.length,i:"🧾",bg:"#dbeafe"},
+        {l:"Revenue",v:money(revenue),i:"📈",bg:"#fef3c7"},
+        {l:"Customers",v:customers,i:"👥",bg:"#ede9fe"},
+        {l:"Products",v:products.length,i:"📦",bg:"#fde2e8"},
+      ];
+      $("statCards").innerHTML=cards.map(c=>`<div class="stat"><div class="ico" style="background:${c.bg}">${c.i}</div><div><div class="v">${c.v}</div><div class="l">${c.l}</div></div></div>`).join("");
+      const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));return d;});
+      const byDay=days.map(d=>({label:d.toLocaleDateString(undefined,{weekday:"short"}), value:orders.filter(o=>new Date(o.createdAt).toDateString()===d.toDateString()).reduce((s,o)=>s+Number(o.total),0)}));
+      $("chartRevenue").innerHTML=svgBars(byDay,"#3bb77e");
+      const catMap={}; products.forEach(p=>{const c=p.category||"General";catMap[c]=(catMap[c]||0)+1;});
+      $("chartCats").innerHTML=hBars(Object.entries(catMap).map(([label,value])=>({label,value})),"#8b5cf6");
+      const recent=orders.slice(0,6);
+      $("recentOrders").innerHTML=orders.length?`<table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr></thead><tbody>`+
+        recent.map(o=>`<tr><td>#${o.id}</td><td>${o.customerName}</td><td>${money(o.total)}</td><td>${statusBadge(o.status)}</td><td>${new Date(o.createdAt).toLocaleDateString()}</td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No orders yet.</div>`;
+    }
+
+    // ================= PRODUCTS =================
+    let imageData=null, editingId=null;
+    function fillProductSelects(){
+      const cats=LS.get("cartify_categories",["Vegetables","Fruits","Dairy","Bakery","Meats","Drinks","Snacks","Electronics","Fashion","Home","General"]);
+      $("prodCatSelect").innerHTML=cats.map(c=>`<option>${c}</option>`).join("");
+      const brands=LS.get("cartify_brands",["Generic"]);
+      $("prodBrandSelect").innerHTML=brands.map(b=>`<option>${b}</option>`).join("");
+    }
+    async function renderProductsSection(){
+      fillProductSelects();
+      const products=await getProducts(true);
+      $("prodCount").textContent=products.length;
+      $("prodTable").innerHTML=products.length?`<table><thead><tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead><tbody>`+
+        products.map(p=>`<tr>
+          <td><div class="thumb-sm">${p.imageUrl?`<img src="${p.imageUrl}" onerror="this.parentNode.textContent='📦'">`:"📦"}</div></td>
+          <td>${p.name}</td><td>${p.category}</td><td>${money(p.price)}</td><td>${p.stock}</td>
+          <td class="act"><button class="link-blue" data-edit="${p.id}">Edit</button> · <button class="link-red" data-del="${p.id}">Delete</button></td>
+        </tr>`).join("")+`</tbody></table>`:`<div class="empty">No products yet.</div>`;
+    }
+    $("imgFile").onchange=(e)=>{const f=e.target.files[0]; if(!f)return; if(f.size>1.5*1024*1024){toast("Image too large (max ~1.5MB)");e.target.value="";return;} const r=new FileReader(); r.onload=()=>{imageData=r.result;$("imgUrl").value="";$("imgPrev").innerHTML=`<img src="${imageData}">`;}; r.readAsDataURL(f);};
+    $("imgUrl").oninput=(e)=>{const u=e.target.value.trim(); if(u){imageData=u;$("imgFile").value="";$("imgPrev").innerHTML=`<img src="${u}" onerror="this.parentNode.textContent='Invalid URL'">`;}else{imageData=null;$("imgPrev").textContent="No image selected";}};
+    function resetProductForm(){ editingId=null; imageData=null; $("productForm").reset(); $("imgPrev").textContent="No image selected"; $("prodFormTitle").textContent="Add Product"; $("prodSubmit").textContent="＋ Add Product"; $("prodCancelEdit").style.display="none"; }
+    $("prodCancelEdit").onclick=resetProductForm;
+    $("productForm").onsubmit=async(e)=>{
+      e.preventDefault(); const f=e.target, msg=$("prodMsg"); msg.className="form-msg"; msg.textContent="Saving…";
+      const payload={ name:f.name.value.trim(), category:f.category.value, price:parseFloat(f.price.value)||0, stock:parseInt(f.stock.value)||0, description:f.description.value.trim(), barcode:f.barcode.value.trim(), imageUrl:imageData };
+      try{
+        const url=editingId?`${PRODUCTS_API}/${editingId}`:PRODUCTS_API;
+        const res=await fetch(url,{method:editingId?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+        if(!res.ok) throw new Error(await res.text());
+        msg.className="form-msg ok"; msg.textContent=editingId?"Product updated.":"Product added — live on store.";
+        toast(editingId?"Product updated":"Product added"); resetProductForm(); renderProductsSection();
+      }catch(err){ msg.className="form-msg err"; msg.textContent=err.message||"Save failed"; }
+    };
+
+    // ================= CATEGORIES / BRANDS / VARIANTS =================
+    async function renderCategories(){
+      const products=await getProducts();
+      const derived={}; products.forEach(p=>{const c=p.category||"General";derived[c]=(derived[c]||0)+1;});
+      const extra=LS.get("cartify_categories",[]);
+      const all=[...new Set([...Object.keys(derived),...extra])];
+      $("catTable").innerHTML=`<table><thead><tr><th>Category</th><th>Products</th><th></th></tr></thead><tbody>`+
+        all.map(c=>`<tr><td>${c}</td><td>${derived[c]||0}</td><td>${extra.includes(c)&&!derived[c]?`<button class="link-red" data-delcat="${c}">Remove</button>`:""}</td></tr>`).join("")+`</tbody></table>`;
+    }
+    $("catForm").onsubmit=(e)=>{e.preventDefault(); const n=e.target.name.value.trim(); if(!n)return; const list=LS.get("cartify_categories",[]); if(!list.includes(n)){list.push(n);LS.set("cartify_categories",list);} e.target.reset(); toast("Category added"); renderCategories(); fillProductSelects();};
+    function renderBrands(){ const brands=LS.get("cartify_brands",["Generic"]);
+      $("brandTable").innerHTML=`<table><thead><tr><th>Brand</th><th></th></tr></thead><tbody>`+brands.map(b=>`<tr><td>${b}</td><td><button class="link-red" data-delbrand="${b}">Remove</button></td></tr>`).join("")+`</tbody></table>`; }
+    $("brandForm").onsubmit=(e)=>{e.preventDefault(); const n=e.target.name.value.trim(); if(!n)return; const list=LS.get("cartify_brands",["Generic"]); if(!list.includes(n)){list.push(n);LS.set("cartify_brands",list);} e.target.reset(); toast("Brand added"); renderBrands(); fillProductSelects();};
+    function renderVariants(){ const v=LS.get("cartify_variants",[]);
+      $("variantTable").innerHTML=v.length?`<table><thead><tr><th>Attribute</th><th>Options</th><th></th></tr></thead><tbody>`+v.map((x,i)=>`<tr><td>${x.attr}</td><td>${x.opts}</td><td><button class="link-red" data-delvar="${i}">Remove</button></td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No variants yet.</div>`; }
+    $("variantForm").onsubmit=(e)=>{e.preventDefault(); const v=LS.get("cartify_variants",[]); v.push({attr:e.target.attr.value.trim(),opts:e.target.opts.value.trim()}); LS.set("cartify_variants",v); e.target.reset(); toast("Variant added"); renderVariants();};
+
+    // ================= INVENTORY =================
+    async function renderInventory(){
+      const products=await getProducts(true);
+      $("invTable").innerHTML=products.length?`<table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody>`+
+        products.map(p=>`<tr><td>${p.name}</td><td>${p.category}</td><td>${money(p.price)}</td>
+          <td><input type="number" min="0" value="${p.stock}" id="stock-${p.id}" style="width:90px;padding:6px 8px;border:1px solid var(--line);border-radius:6px"></td>
+          <td><button class="btn btn-sm btn-green" data-savestock="${p.id}">Save</button></td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No products.</div>`;
+    }
+    async function saveStock(id){
+      const products=await getProducts(); const p=products.find(x=>String(x.id)===String(id)); if(!p)return;
+      const stock=parseInt($("stock-"+id).value)||0;
+      try{ const res=await fetch(`${PRODUCTS_API}/${id}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:p.name,category:p.category,price:p.price,description:p.description,imageUrl:p.imageUrl,barcode:p.barcode,stock})}); if(!res.ok)throw new Error(); toast("Stock updated"); cache.products=null; }catch{ toast("Update failed"); }
+    }
+
+    // ================= ORDERS =================
+    const STATUSES=["Pending","Processing","Shipped","Delivered","Cancelled","Refunded"];
+    function statusBadge(s){ const m={Pending:"b-amber",Processing:"b-blue",Shipped:"b-blue",Delivered:"b-green",Cancelled:"b-pink",Refunded:"b-gray"}; return `<span class="badge ${m[s]||"b-gray"}">${s}</span>`; }
+    async function renderOrders(){
+      const orders=await getOrders(true);
+      $("orderCount").textContent=orders.length;
+      $("orderTable").innerHTML=orders.length?`<table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody>`+
+        orders.map(o=>{ const items=(o.items||[]).map(it=>`${it.name}×${it.quantity}`).join(", ");
+          return `<tr><td>#${o.id}<div style="font-size:11px;color:var(--muted)">${new Date(o.createdAt).toLocaleDateString()}</div></td>
+          <td>${o.customerName}<div style="font-size:11px;color:var(--muted)">${o.customerEmail}</div></td>
+          <td style="max-width:220px;font-size:12px;color:var(--muted)">${items}${o.deliverySlot?`<div style="margin-top:3px">🕒 ${o.deliverySlot}</div>`:""}${o.shippingAddress?`<div>📍 ${[o.shippingAddress.city,o.shippingAddress.zip].filter(Boolean).join(" ")}</div>`:""}</td>
+          <td>${money(o.total)}<div style="font-size:11px;color:var(--muted)">${o.paymentMethod||"COD"} · ${o.paymentStatus||"Pending"}</div></td>
+          <td><select data-status="${o.id}" style="padding:6px;border:1px solid var(--line);border-radius:6px">${STATUSES.map(s=>`<option ${s===o.status?"selected":""}>${s}</option>`).join("")}</select></td>
+          <td class="act"><button class="link-red" data-cancel="${o.id}">Cancel</button> · <button class="link-blue" data-refund="${o.id}">Refund</button> · <button class="link-blue" data-invoice="${o.id}">Invoice</button></td></tr>`;
+        }).join("")+`</tbody></table>`:`<div class="empty">No orders yet.</div>`;
+    }
+    async function setOrderStatus(id,status){ try{ const res=await fetch(`${ORDERS_API}/${id}/status`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(status)}); if(!res.ok)throw new Error(); toast(`Order #${id} → ${status}`); cache.orders=null; renderOrders(); }catch{ toast("Update failed"); } }
+    async function generateInvoice(id){
+      const orders=await getOrders(); const o=orders.find(x=>String(x.id)===String(id)); if(!o)return;
+      const addr=o.shippingAddress||{};
+      const rows=(o.items||[]).map(it=>`<tr><td>${it.name}</td><td style="text-align:center">${it.quantity}</td><td style="text-align:right">${money(it.price)}</td><td style="text-align:right">${money(it.price*it.quantity)}</td></tr>`).join("");
+      const w=window.open("","_blank");
+      w.document.write(`<html><head><title>GST Invoice #${o.id}</title><style>
+        body{font-family:system-ui,Arial;padding:40px;color:#253d4e;max-width:720px;margin:auto}
+        .hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #3bb77e;padding-bottom:14px}
+        h1{color:#3bb77e;margin:0}.muted{color:#7e7e7e;font-size:13px}
+        table{width:100%;border-collapse:collapse;margin-top:18px}td,th{padding:9px;border-bottom:1px solid #eee}th{text-align:left;font-size:12px;color:#7e7e7e}
+        .tot td{border:none;padding:4px 9px}.grand{font-weight:800;font-size:18px;color:#29a56c}
+        .box{background:#f4f6fa;border-radius:10px;padding:14px;margin-top:16px;font-size:14px}</style></head><body>
+        <div class="hd"><div><h1>🛒 Cartify</h1><div class="muted">Tax Invoice / GST Invoice</div></div>
+        <div style="text-align:right"><div><b>Invoice #${o.id}</b></div><div class="muted">${new Date(o.createdAt).toLocaleString()}</div><div class="muted">GSTIN: 29ABCDE1234F1Z5</div></div></div>
+        <div class="box"><b>Bill To:</b> ${o.customerName} (${o.customerEmail})<br>
+        ${addr.label?`${addr.label} — `:""}${[addr.line1,addr.city,addr.state,addr.zip].filter(Boolean).join(", ")}${addr.phone?" · "+addr.phone:""}<br>
+        <span class="muted">Delivery slot:</span> ${o.deliverySlot||"—"} &nbsp; <span class="muted">Payment:</span> ${o.paymentMethod||"COD"} (${o.paymentStatus||"Pending"})${o.couponCode?` &nbsp; <span class="muted">Coupon:</span> ${o.couponCode}`:""} &nbsp; <span class="muted">Status:</span> ${o.status}</div>
+        <table><thead><tr><th>Item</th><th style="text-align:center">Qty</th><th style="text-align:right">Rate</th><th style="text-align:right">Amount</th></tr></thead><tbody>${rows}</tbody></table>
+        <table class="tot" style="margin-top:10px;width:280px;margin-left:auto"><tbody>
+          <tr><td>Subtotal</td><td style="text-align:right">${money(o.subtotal||o.total)}</td></tr>
+          ${o.discount>0?`<tr><td>Discount</td><td style="text-align:right">− ${money(o.discount)}</td></tr>`:""}
+          <tr><td>Delivery</td><td style="text-align:right">${o.deliveryCharge>0?money(o.deliveryCharge):"FREE"}</td></tr>
+          <tr><td>GST</td><td style="text-align:right">${money(o.tax||0)}</td></tr>
+          <tr class="grand"><td>Total</td><td style="text-align:right">${money(o.total)}</td></tr>
+        </tbody></table>
+        ${o.notes?`<div class="box"><b>Notes:</b> ${o.notes}</div>`:""}
+        <p class="muted" style="margin-top:26px;text-align:center">Computer-generated invoice. Thank you for shopping with Cartify!</p>
+        <script>window.onload=()=>window.print()<\/script></body></html>`);
+      w.document.close();
+    }
+
+    // ================= CUSTOMERS =================
+    async function renderCustomers(){
+      const users=await getUsers(true);
+      $("custCount").textContent=users.length;
+      $("historyCard").style.display="none";
+      $("custTable").innerHTML=users.length?`<table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead><tbody>`+
+        users.map(u=>`<tr><td>${u.fullName||"—"}</td><td>${u.email}</td><td><span class="badge ${u.role==="Admin"?"b-violet b-blue":"b-gray"}">${u.role}</span></td>
+        <td>${u.isBlocked?`<span class="badge b-pink">Blocked</span>`:`<span class="badge b-green">Active</span>`}</td>
+        <td>${new Date(u.createdAt).toLocaleDateString()}</td>
+        <td class="act">${u.role==="Admin"?"—":`<button class="${u.isBlocked?"link-blue":"link-red"}" data-block="${u.id}" data-blocked="${u.isBlocked}">${u.isBlocked?"Unblock":"Block"}</button> · `}<button class="link-blue" data-history="${u.email}" data-name="${u.fullName||u.email}">History</button></td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No customers yet.</div>`;
+    }
+    async function toggleBlock(id,blocked){ try{ const res=await fetch(`${USERS_API}/${id}/block`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({blocked:!blocked})}); if(!res.ok){toast(await res.text()||"Failed");return;} toast(!blocked?"User blocked":"User unblocked"); cache.users=null; renderCustomers(); }catch{ toast("Failed"); } }
+    async function showHistory(email,name){
+      const res=await fetch(`${ORDERS_API}/user/${encodeURIComponent(email)}`).catch(()=>null);
+      const orders=res&&res.ok?await res.json():[];
+      $("historyTitle").textContent=`Purchase History — ${name}`;
+      $("historyCard").style.display="block";
+      $("historyTable").innerHTML=orders.length?`<table><thead><tr><th>Order</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th></tr></thead><tbody>`+
+        orders.map(o=>`<tr><td>#${o.id}</td><td style="font-size:12px;color:var(--muted)">${(o.items||[]).map(it=>`${it.name}×${it.quantity}`).join(", ")}</td><td>${money(o.total)}</td><td>${statusBadge(o.status)}</td><td>${new Date(o.createdAt).toLocaleDateString()}</td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No orders for this customer.</div>`;
+      $("historyCard").scrollIntoView({behavior:"smooth"});
+    }
+
+    // ================= COUPONS (PromotionsService) =================
+    async function renderCoupons(){
+      let list=[]; try { const r=await fetch(`${PROMO_API}/coupons`); if(r.ok) list=await r.json(); } catch {}
+      $("couponTable").innerHTML=list.length?`<table><thead><tr><th>Code</th><th>Type</th><th>Value</th><th>Min</th><th>Expiry</th><th></th></tr></thead><tbody>`+
+        list.map(c=>`<tr><td><b>${c.code}</b></td><td>${({percent:"Percentage",flat:"Flat",free_shipping:"Free shipping"})[c.type]}</td><td>${c.type==="percent"?c.value+"%":c.type==="flat"?money(c.value):"—"}</td><td>${money(c.minOrder)}</td><td>${c.expiry||"—"}</td><td><button class="link-red" data-delcoupon="${c.id}">Delete</button></td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No coupons yet.</div>`;
+    }
+    $("couponForm").onsubmit=async(e)=>{e.preventDefault(); const f=e.target;
+      try { const r=await fetch(`${PROMO_API}/coupons`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:f.code.value.trim().toUpperCase(),type:f.type.value,value:parseFloat(f.value.value)||0,minOrder:parseFloat(f.minOrder.value)||0,expiry:f.expiry.value})}); if(!r.ok)throw new Error(); toast("Coupon created"); f.reset(); renderCoupons(); } catch { toast("Failed to create coupon"); }
+    };
+
+    // ================= BANNERS (PromotionsService) =================
+    async function renderBanners(){
+      let list=[]; try { const r=await fetch(`${PROMO_API}/banners`); if(r.ok) list=await r.json(); } catch {}
+      $("bannerTable").innerHTML=list.length?`<table><thead><tr><th>Title</th><th>Type</th><th>Color</th><th></th></tr></thead><tbody>`+
+        list.map(b=>`<tr><td>${b.title}<div style="font-size:11px;color:var(--muted)">${b.subtitle||""}</div></td><td>${b.type}</td><td><span style="display:inline-block;width:16px;height:16px;border-radius:4px;background:${b.color};vertical-align:middle"></span></td><td><button class="link-red" data-delbanner="${b.id}">Delete</button></td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No banners yet.</div>`;
+    }
+    $("bannerForm").onsubmit=async(e)=>{e.preventDefault(); const f=e.target;
+      try { const r=await fetch(`${PROMO_API}/banners`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:f.title.value.trim(),subtitle:f.subtitle.value.trim(),type:f.type.value,color:f.color.value,active:true})}); if(!r.ok)throw new Error(); toast("Banner added"); f.reset(); renderBanners(); } catch { toast("Failed to add banner"); }
+    };
+
+    // ================= REPORTS =================
+    let currentReport="sales", reportRows=[];
+    document.querySelectorAll("#reportTabs .subtab").forEach(t=>t.onclick=()=>{ currentReport=t.dataset.rep; document.querySelectorAll("#reportTabs .subtab").forEach(x=>x.classList.toggle("active",x===t)); renderReports(); });
+    async function renderReports(){
+      const [orders,products,users]=await Promise.all([getOrders(),getProducts(),getUsers()]);
+      await loadSettings(); const s=getSettings(); let head=[], rows=[];
+      if(currentReport==="sales"){ head=["Order","Customer","Total","Status","Date"]; rows=orders.map(o=>[`#${o.id}`,o.customerName,Number(o.total).toFixed(2),o.status,new Date(o.createdAt).toLocaleDateString()]); }
+      else if(currentReport==="product"){ const sold={}; orders.forEach(o=>(o.items||[]).forEach(it=>{sold[it.name]=(sold[it.name]||0)+it.quantity;})); head=["Product","Category","Price","Stock","Units Sold"]; rows=products.map(p=>[p.name,p.category,Number(p.price).toFixed(2),p.stock,sold[p.name]||0]); }
+      else if(currentReport==="customer"){ const spend={}; orders.forEach(o=>{spend[o.customerEmail]=(spend[o.customerEmail]||0)+Number(o.total);}); head=["Name","Email","Orders","Total Spent","Status"]; rows=users.map(u=>[u.fullName||"—",u.email,orders.filter(o=>o.customerEmail===u.email).length,(spend[u.email]||0).toFixed(2),u.isBlocked?"Blocked":"Active"]); }
+      else if(currentReport==="inventory"){ head=["Product","Category","Stock","Value","Status"]; rows=products.map(p=>[p.name,p.category,p.stock,(p.stock*p.price).toFixed(2),p.stock<5?"Low":"OK"]); }
+      else if(currentReport==="gst"){ head=["Order","Date","Amount","GST%","GST Amount"]; rows=orders.map(o=>{const g=Number(o.total)*s.gstPercent/100; return [`#${o.id}`,new Date(o.createdAt).toLocaleDateString(),Number(o.total).toFixed(2),s.gstPercent+"%",g.toFixed(2)];}); }
+      reportRows=[head,...rows];
+      $("reportBody").innerHTML=rows.length?`<table><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>`+rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")+`</tbody></table>`:`<div class="empty">No data for this report.</div>`;
+    }
+    $("repExport").onclick=()=>{ const csv=reportRows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n"); const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`cartify-${currentReport}-report.csv`; a.click(); toast("CSV exported"); };
+    $("repPrint").onclick=()=>window.print();
+
+    // ================= SETTINGS =================
+    let currentSet="delivery";
+    document.querySelectorAll("#setTabs .subtab").forEach(t=>t.onclick=()=>{ currentSet=t.dataset.set; document.querySelectorAll("#setTabs .subtab").forEach(x=>x.classList.toggle("active",x===t)); renderSettings(); });
+    async function renderSettings(){
+      await loadSettings(); const s=getSettings(); let html="";
+      if(currentSet==="delivery") html=`<div class="row2"><div class="field"><label>Delivery charge ($)</label><input id="set-deliveryCharge" type="number" step="0.01" value="${s.deliveryCharge}"></div><div class="field"><label>Free shipping over ($)</label><input id="set-freeShipThreshold" type="number" step="0.01" value="${s.freeShipThreshold}"></div></div>`;
+      else if(currentSet==="tax") html=`<div class="row2"><div class="field"><label>Sales tax (%)</label><input id="set-taxPercent" type="number" step="0.01" value="${s.taxPercent}"></div><div class="field"><label>GST (%)</label><input id="set-gstPercent" type="number" step="0.01" value="${s.gstPercent}"></div></div>`;
+      else if(currentSet==="payment") html=`<div class="field"><label><input type="checkbox" id="set-codEnabled" ${s.codEnabled?"checked":""}> Cash on Delivery</label></div><div class="field"><label><input type="checkbox" id="set-cardEnabled" ${s.cardEnabled?"checked":""}> Card payments</label></div><div class="field"><label><input type="checkbox" id="set-upiEnabled" ${s.upiEnabled?"checked":""}> UPI</label></div>`;
+      else if(currentSet==="email") html=`<div class="field"><label>From address</label><input id="set-emailFrom" value="${s.emailFrom}"></div><div class="field"><label>SMTP host</label><input id="set-smtpHost" value="${s.smtpHost}" placeholder="smtp.example.com"></div>`;
+      else if(currentSet==="sms") html=`<div class="field"><label>SMS provider</label><select id="set-smsProvider"><option ${s.smsProvider==="None"?"selected":""}>None</option><option ${s.smsProvider==="Twilio"?"selected":""}>Twilio</option><option ${s.smsProvider==="MSG91"?"selected":""}>MSG91</option></select></div><div class="field"><label>API key</label><input id="set-smsKey" value="${s.smsKey}" placeholder="••••••"></div>`;
+      $("setBody").innerHTML=html+`<button class="submit" id="setSave" style="max-width:200px">Save settings</button>`;
+      $("setSave").onclick=async()=>{ const cur=getSettings(); document.querySelectorAll("[id^='set-']").forEach(el=>{ const k=el.id.slice(4); cur[k]=el.type==="checkbox"?el.checked:(el.type==="number"?parseFloat(el.value)||0:el.value); }); try { const r=await fetch(`${PROMO_API}/settings`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(cur)}); if(!r.ok)throw new Error(); settingsCache=Object.assign({},DEFAULT_SETTINGS,await r.json()); toast("Settings saved"); } catch { toast("Failed to save settings"); } };
+    }
+
+    // ---- Render dispatch ----
+    const RENDER={ dashboard:renderDashboard, products:renderProductsSection, bulk:()=>{}, categories:renderCategories, brands:renderBrands, variants:renderVariants, inventory:renderInventory, orders:renderOrders, customers:renderCustomers, coupons:renderCoupons, banners:renderBanners, reports:renderReports, settings:renderSettings };
+
+    // ---- Bulk CSV ----
+    $("csvTemplate").onclick=()=>{ const csv=`name,category,price,stock,description\nOrganic Apples,Fruits,3.99,50,Fresh organic apples\nAlmond Milk,Dairy,4.50,30,Unsweetened almond milk`; const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download="cartify-products-template.csv"; a.click(); };
+    $("csvUpload").onclick=async()=>{
+      const file=$("csvFile").files[0]; if(!file){toast("Choose a CSV file first");return;}
+      const text=await file.text();
+      const lines=text.split(/\r?\n/).filter(l=>l.trim());
+      const header=lines.shift().split(",").map(h=>h.trim().toLowerCase());
+      let ok=0,fail=0;
+      $("bulkResult").innerHTML="Uploading…";
+      for(const line of lines){
+        const cols=line.split(","); const row={}; header.forEach((h,i)=>row[h]=(cols[i]||"").trim());
+        try{ const res=await fetch(PRODUCTS_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:row.name,category:row.category||"General",price:parseFloat(row.price)||0,stock:parseInt(row.stock)||0,description:row.description||"",imageUrl:null})}); res.ok?ok++:fail++; }catch{ fail++; }
+      }
+      cache.products=null;
+      $("bulkResult").innerHTML=`<div class="badge b-green">${ok} created</div> ${fail?`<div class="badge b-pink">${fail} failed</div>`:""}`;
+      toast(`Bulk upload: ${ok} created`);
+    };
+
+    // ---- Global click delegation ----
+    document.addEventListener("click", async (e)=>{
+      const t=e.target;
+      const edit=t.closest("[data-edit]"); if(edit){ const p=(await getProducts()).find(x=>String(x.id)===edit.dataset.edit); if(p){ editingId=p.id; const f=$("productForm"); f.name.value=p.name; f.category.value=p.category; f.price.value=p.price; f.stock.value=p.stock; f.barcode.value=p.barcode||""; f.description.value=p.description||""; imageData=p.imageUrl||null; $("imgPrev").innerHTML=p.imageUrl?`<img src="${p.imageUrl}">`:"No image selected"; $("prodFormTitle").textContent="Edit Product"; $("prodSubmit").textContent="Update Product"; $("prodCancelEdit").style.display="block"; f.scrollIntoView({behavior:"smooth"}); } }
+      const del=t.closest("[data-del]"); if(del){ if(confirm("Delete this product?")){ try{ await fetch(`${PRODUCTS_API}/${del.dataset.del}`,{method:"DELETE"}); toast("Deleted"); cache.products=null; renderProductsSection(); }catch{ toast("Delete failed"); } } }
+      const savestock=t.closest("[data-savestock]"); if(savestock) saveStock(savestock.dataset.savestock);
+      const cancel=t.closest("[data-cancel]"); if(cancel){ if(confirm("Cancel this order?")) setOrderStatus(cancel.dataset.cancel,"Cancelled"); }
+      const refund=t.closest("[data-refund]"); if(refund){ if(confirm("Refund this order?")) setOrderStatus(refund.dataset.refund,"Refunded"); }
+      const invoice=t.closest("[data-invoice]"); if(invoice) generateInvoice(invoice.dataset.invoice);
+      const block=t.closest("[data-block]"); if(block) toggleBlock(block.dataset.block, block.dataset.blocked==="true");
+      const history=t.closest("[data-history]"); if(history) showHistory(history.dataset.history, history.dataset.name);
+      const delcat=t.closest("[data-delcat]"); if(delcat){ LS.set("cartify_categories",LS.get("cartify_categories",[]).filter(c=>c!==delcat.dataset.delcat)); renderCategories(); fillProductSelects(); }
+      const delbrand=t.closest("[data-delbrand]"); if(delbrand){ LS.set("cartify_brands",LS.get("cartify_brands",["Generic"]).filter(b=>b!==delbrand.dataset.delbrand)); renderBrands(); fillProductSelects(); }
+      const delvar=t.closest("[data-delvar]"); if(delvar){ const v=LS.get("cartify_variants",[]); v.splice(+delvar.dataset.delvar,1); LS.set("cartify_variants",v); renderVariants(); }
+      const delcoupon=t.closest("[data-delcoupon]"); if(delcoupon){ try{ await fetch(`${PROMO_API}/coupons/${delcoupon.dataset.delcoupon}`,{method:"DELETE"}); }catch{} renderCoupons(); }
+      const delbanner=t.closest("[data-delbanner]"); if(delbanner){ try{ await fetch(`${PROMO_API}/banners/${delbanner.dataset.delbanner}`,{method:"DELETE"}); }catch{} renderBanners(); }
+    });
+    document.addEventListener("change",(e)=>{ const st=e.target.closest("[data-status]"); if(st) setOrderStatus(st.dataset.status, e.target.value); });
+
+    // Everything (TITLES, RENDER, handlers) is now defined — start the router.
+    // Mobile sidebar toggle
+    $("hamburger").onclick = () => { const sb=document.querySelector(".sidebar"); const show=!sb.classList.contains("open"); sb.classList.toggle("open",show); $("sbBackdrop").classList.toggle("open",show); };
+    $("sbBackdrop").onclick = closeSidebar;
+
+    if (user && user.role === "Admin") initRouter();
+  </script>
+</body>
+</html>
