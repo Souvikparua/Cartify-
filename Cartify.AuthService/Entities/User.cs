@@ -14,5 +14,10 @@ public class User
 
     public bool IsBlocked { get; set; }
 
+    // OTP verification
+    public bool IsVerified { get; set; }
+    public string? OtpCode { get; set; }
+    public DateTime? OtpExpiry { get; set; }
+
     public DateTime CreatedAt { get; set; }
 }

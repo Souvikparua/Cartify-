@@ -12,3 +12,9 @@ public class ChangePasswordRequest
     public string CurrentPassword { get; set; } = "";
     public string NewPassword { get; set; } = "";
 }
+
+public class VerifyOtpRequest
+{
+    public string Email { get; set; } = "";
+    public string Code { get; set; } = "";
+}

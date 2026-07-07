@@ -7,4 +7,7 @@ public class RegisterRequest
     public string Email { get; set; } = "";
 
     public string Password { get; set; } = "";
+
+    // Customer (default), Dealer, or DeliveryPartner.
+    public string? Role { get; set; }
 }

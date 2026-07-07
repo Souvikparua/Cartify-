@@ -22,6 +22,13 @@ public class CreateOrderRequest
     public OrderAddressDto? ShippingAddress { get; set; }
 }
 
+public class AssignOrderRequest
+{
+    public string? DealerEmail { get; set; }
+    public string? DeliveryPartnerEmail { get; set; }
+    public string? Status { get; set; }
+}
+
 public class OrderItemDto
 {
     public int ProductId { get; set; }

@@ -17,6 +17,10 @@ public class Order
 
     public string Status { get; set; } = "Pending";
 
+    // Fulfillment
+    public string? DealerEmail { get; set; }
+    public string? DeliveryPartnerEmail { get; set; }
+
     // Checkout details
     public string? CouponCode { get; set; }
     public string? DeliverySlot { get; set; }

@@ -14,5 +14,7 @@ public class ProductRequest
 
     public string? Barcode { get; set; }
 
+    public string? DealerEmail { get; set; }
+
     public int Stock { get; set; }
 }

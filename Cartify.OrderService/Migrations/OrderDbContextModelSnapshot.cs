@@ -44,8 +44,14 @@ namespace Cartify.OrderService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("DealerEmail")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("DeliveryCharge")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("DeliveryPartnerEmail")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DeliverySlot")
                         .HasColumnType("nvarchar(max)");

@@ -1,7 +1,8 @@
+using Cartify.AuthService.Auth;
 using Cartify.AuthService.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,26 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"));
 });
+
+// JWT bearer authentication (validates tokens this service also issues).
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = JwtHelper.Issuer,
+            ValidateAudience = true,
+            ValidAudience = JwtHelper.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = JwtHelper.SigningKey(),
+            ValidateLifetime = true,
+            RoleClaimType = "role",
+            NameClaimType = "name"
+        };
+    });
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -30,6 +51,7 @@ using (var scope = app.Services.CreateScope())
             Email = "admin@cartify.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"),
             Role = "Admin",
+            IsVerified = true,
             CreatedAt = DateTime.UtcNow
         });
         db.SaveChanges();
@@ -38,6 +60,9 @@ using (var scope = app.Services.CreateScope())
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Pure API microservice — the SPA is served by the API Gateway, not here.
 app.MapControllers();

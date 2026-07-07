@@ -18,6 +18,9 @@ public class Product
     // Barcode / SKU used for barcode search.
     public string? Barcode { get; set; }
 
+    // Owning dealer/seller (null = platform-owned).
+    public string? DealerEmail { get; set; }
+
     public int Stock { get; set; }
 
     public DateTime CreatedAt { get; set; }

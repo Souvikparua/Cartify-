@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    // Attach the JWT (when signed in) to every API request.
+    (function(){var _f=window.fetch;window.fetch=function(u,o){try{o=o||{};var t=localStorage.getItem("cartify_token");if(t&&typeof u==="string"&&u.indexOf("/api/")===0){o.headers=Object.assign({},o.headers,{Authorization:"Bearer "+t});}}catch(e){}return _f.call(this,u,o);};})();
+  </script>
+  <script>
+    // Dealers and delivery partners belong in their own panel, not the customer store.
+    try {
+      var _u = JSON.parse(localStorage.getItem("cartify_user") || "null");
+      if (_u && _u.role === "Dealer") location.replace("/dealer.html");
+      else if (_u && _u.role === "DeliveryPartner") location.replace("/delivery.html");
+    } catch (e) {}
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cartify — Fresh Groceries & More</title>
@@ -492,6 +504,13 @@
           <div class="field"><label>Full name</label><input type="text" name="fullName" required placeholder="Jane Doe" /></div>
           <div class="field"><label>Email</label><input type="email" name="email" required placeholder="you@example.com" /></div>
           <div class="field"><label>Password</label><input type="password" name="password" required placeholder="Choose a password" /></div>
+          <div class="field"><label>I am registering as</label>
+            <select name="role" style="width:100%;padding:12px 14px;border-radius:8px;font-size:14px;background:var(--soft);border:1px solid var(--border);color:var(--dark)">
+              <option value="Customer">Customer — shop &amp; buy</option>
+              <option value="Dealer">Dealer / Seller — sell &amp; fulfil orders</option>
+              <option value="DeliveryPartner">Delivery Partner — deliver orders</option>
+            </select>
+          </div>
           <button type="submit" class="btn-primary">Create account</button>
           <div class="form-msg" id="registerMsg"></div>
         </form>
@@ -1011,7 +1030,7 @@
     $("browseBtn").onclick = (e) => { e.stopPropagation(); $("browseMenu").classList.toggle("open"); };
     $("accountBtn").onclick = (e) => { e.stopPropagation(); handleAccount(); };
     $("topMyAccount").onclick = (e) => { e.preventDefault(); e.stopPropagation(); handleAccount(); };
-    $("amLogout").onclick = () => { closeAccountMenu(); setUser(null); toast("Logged out"); };
+    $("amLogout").onclick = () => { closeAccountMenu(); setUser(null); localStorage.removeItem("cartify_token"); toast("Logged out"); };
     $("amOrders").onclick = showMyOrders;
     $("ordersClose").onclick = () => $("ordersModal").classList.remove("open");
     $("ordersModal").onclick = (e) => { if (e.target === $("ordersModal")) $("ordersModal").classList.remove("open"); };
@@ -1028,20 +1047,34 @@
       try {
         const res = await fetch(`${AUTH_API}/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: f.email.value, password: f.password.value }) });
         const b = await readBody(res); if (!res.ok) throw new Error(b.message || "Login failed");
-        setUser({ email: b.email || f.email.value, fullName: b.fullName, role: b.role || "Customer" });
+        if (b.token) localStorage.setItem("cartify_token", b.token);
+        const role = b.role || "Customer";
+        setUser({ email: b.email || f.email.value, fullName: b.fullName, role });
+        // Route dealers and delivery partners to their own panels.
+        if (role === "Dealer") { toast("Signed in as Dealer"); location.href = "/dealer.html"; return; }
+        if (role === "DeliveryPartner") { toast("Signed in as Delivery Partner"); location.href = "/delivery.html"; return; }
         loadServerCart();
         msg.className = "form-msg ok"; msg.textContent = "Welcome back!";
-        toast(b.role === "Admin" ? "Signed in as Admin" : "Signed in successfully");
+        toast(role === "Admin" ? "Signed in as Admin" : "Signed in successfully");
         setTimeout(closeModal, 700); f.reset();
       } catch (err) { msg.className = "form-msg err"; msg.textContent = err.message; }
     };
     $("registerForm").onsubmit = async (e) => {
       e.preventDefault(); const f = e.target, msg = $("registerMsg"); msg.className = "form-msg"; msg.textContent = "Creating account…";
       try {
-        const res = await fetch(`${AUTH_API}/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fullName: f.fullName.value, email: f.email.value, password: f.password.value }) });
+        const res = await fetch(`${AUTH_API}/register`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fullName: f.fullName.value, email: f.email.value, password: f.password.value, role: f.role ? f.role.value : "Customer" }) });
         const b = await readBody(res); if (!res.ok) throw new Error(b.message || "Registration failed");
-        msg.className = "form-msg ok"; msg.textContent = "Account created! You can sign in now.";
-        toast("Account created"); setTimeout(() => switchTab("login"), 900); f.reset();
+        // OTP verification step (demo: the code is returned so you can test it).
+        const email = f.email.value;
+        msg.className = "form-msg ok"; msg.textContent = "Account created — verify the OTP to activate it.";
+        const code = prompt("Enter the OTP sent to your email to verify your account:", b.devOtp || "");
+        if (code) {
+          const vr = await fetch(`${AUTH_API}/verify-otp`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, code }) });
+          const vb = await readBody(vr);
+          if (vr.ok) { toast("✅ Verified — you can sign in now"); switchTab("login"); }
+          else { msg.className = "form-msg err"; msg.textContent = vb.message || "OTP verification failed"; }
+        } else { msg.textContent = "Registered. Verify the OTP later to sign in."; }
+        f.reset();
       } catch (err) { msg.className = "form-msg err"; msg.textContent = err.message; }
     };
     $("checkoutBtn").onclick = () => {

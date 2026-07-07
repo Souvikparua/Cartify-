@@ -28,6 +28,18 @@ public class ProductsController : ControllerBase
         return Ok(products);
     }
 
+    // GET /api/products/dealer/{email}  (a dealer's own inventory)
+    [HttpGet("dealer/{email}")]
+    public async Task<IActionResult> GetByDealer(string email)
+    {
+        var products = await _context.Products
+            .Where(p => p.DealerEmail == email)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
+
+        return Ok(products);
+    }
+
     // GET /api/products/5
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
@@ -53,6 +65,7 @@ public class ProductsController : ControllerBase
             Description = request.Description,
             ImageUrl = request.ImageUrl,
             Barcode = request.Barcode,
+            DealerEmail = request.DealerEmail,
             Stock = request.Stock,
             CreatedAt = DateTime.UtcNow
         };
@@ -79,6 +92,7 @@ public class ProductsController : ControllerBase
         product.Description = request.Description;
         product.ImageUrl = request.ImageUrl;
         product.Barcode = request.Barcode;
+        if (request.DealerEmail is not null) product.DealerEmail = request.DealerEmail;
         product.Stock = request.Stock;
 
         await _context.SaveChangesAsync();

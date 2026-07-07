@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+    (function(){var _f=window.fetch;window.fetch=function(u,o){try{o=o||{};var t=localStorage.getItem("cartify_token");if(t&&typeof u==="string"&&u.indexOf("/api/")===0){o.headers=Object.assign({},o.headers,{Authorization:"Bearer "+t});}}catch(e){}return _f.call(this,u,o);};})();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cartify — Dealer Panel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root{ --green:#3bb77e;--green-d:#29a56c;--green-soft:#e6f7ef;--sidebar:#153e35;--line:#e5e7eb;--dark:#1f2937;--muted:#6b7280;--bg:#f3f4f6;--card:#fff;--pink:#ef4767;--amber:#f59e0b;--blue:#3b82f6;--shadow:0 6px 24px rgba(0,0,0,.07);}
+    *{box-sizing:border-box;} body{margin:0;font-family:"Quicksand",system-ui,sans-serif;background:var(--bg);color:var(--dark);}
+    a{color:inherit;text-decoration:none;} button{font-family:inherit;cursor:pointer;border:none;} input,select{font-family:inherit;}
+    .app{display:flex;min-height:100vh;} .sidebar{width:240px;background:var(--sidebar);color:#d1fae5;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+    .sb-brand{padding:20px;font-size:19px;font-weight:700;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.1);}
+    .sb-user{padding:14px 20px;font-size:13px;color:#9dd3bf;border-bottom:1px solid rgba(255,255,255,.08);}
+    .nav-item{display:flex;align-items:center;gap:11px;padding:11px 20px;color:#c9e8dc;font-size:14px;font-weight:600;cursor:pointer;}
+    .nav-item:hover{background:rgba(255,255,255,.06);color:#fff;} .nav-item.active{background:var(--green);color:#fff;}
+    .main{flex:1;min-width:0;} .topbar{background:#fff;border-bottom:1px solid var(--line);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;}
+    .topbar h1{font-size:19px;margin:0;} .sp{margin-left:auto;}
+    .btn{padding:9px 15px;border-radius:9px;font-weight:600;font-size:14px;background:#eef1f5;color:var(--dark);display:inline-flex;align-items:center;gap:7px;} .btn:hover{background:#e3e7ec;}
+    .btn-green{background:var(--green);color:#fff;} .btn-green:hover{background:var(--green-d);} .btn-sm{padding:6px 11px;font-size:13px;border-radius:7px;}
+    .content{padding:24px;} .section{display:none;} .section.active{display:block;}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;box-shadow:var(--shadow);margin-bottom:20px;}
+    .card h2{margin:0 0 14px;font-size:18px;} .grid2{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start;}
+    @media(max-width:860px){.grid2{grid-template-columns:1fr;}}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:20px;}
+    .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:var(--shadow);}
+    .stat .v{font-size:26px;font-weight:800;} .stat .l{color:var(--muted);font-size:13px;font-weight:600;margin-top:2px;}
+    .field{margin-bottom:13px;} .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:600;}
+    .field input,.field select{width:100%;padding:10px 12px;border-radius:8px;font-size:14px;border:1px solid var(--line);outline:none;} .field input:focus{border-color:var(--green);}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;} .submit{padding:11px 20px;border-radius:9px;background:var(--green);color:#fff;font-weight:700;font-size:15px;} .submit:hover{background:var(--green-d);}
+    table{width:100%;border-collapse:collapse;} th,td{text-align:left;padding:10px;border-bottom:1px solid var(--line);font-size:14px;} th{color:var(--muted);font-size:12px;text-transform:uppercase;}
+    .tbl-wrap{overflow-x:auto;} .badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;}
+    .b-amber{background:#fef3c7;color:#b45309;}.b-blue{background:#dbeafe;color:#1d4ed8;}.b-green{background:var(--green-soft);color:var(--green-d);}.b-pink{background:#fde2e8;color:#be123c;}.b-gray{background:#eef1f5;color:#475569;}
+    .link-green{color:var(--green-d);font-weight:700;font-size:13px;}.link-red{color:var(--pink);font-weight:700;font-size:13px;}.link-blue{color:var(--blue);font-weight:700;font-size:13px;}
+    .empty{text-align:center;color:var(--muted);padding:30px;} .gate{max-width:460px;margin:80px auto;text-align:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:40px;box-shadow:var(--shadow);}
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:12px 22px;border-radius:10px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all .25s;z-index:300;font-weight:600;font-size:14px;}
+    #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  </style>
+</head>
+<body>
+  <div class="gate" id="gate" style="display:none">
+    <h2>🏪 Dealer access required</h2>
+    <p id="gateMsg" style="color:var(--muted)">Please sign in with a dealer account.</p>
+    <a class="btn btn-green" href="/" style="margin-top:14px;display:inline-block">Go to store &amp; sign in</a>
+  </div>
+
+  <div class="app" id="app" style="display:none">
+    <aside class="sidebar">
+      <div class="sb-brand">🏪 <span>Dealer Panel</span></div>
+      <div class="sb-user" id="sbUser"></div>
+      <div class="nav-item active" data-s="dashboard">📊 Dashboard</div>
+      <div class="nav-item" data-s="inventory">📦 Manage Inventory</div>
+      <div class="nav-item" data-s="orders">🧾 Orders</div>
+      <div class="nav-item" data-s="reports">📈 Sales Reports</div>
+      <div class="nav-item" data-s="earnings">💰 Earnings</div>
+      <div class="nav-item" data-s="gst">🧮 GST Details</div>
+      <div class="nav-item" data-s="settings">📍 Radius &amp; Hours</div>
+    </aside>
+    <div class="main">
+      <div class="topbar"><h1 id="pageTitle">Dashboard</h1><div class="sp"></div>
+        <span class="badge b-green" id="openBadge">Open</span>
+        <button class="btn" id="logoutBtn">Logout</button></div>
+      <div class="content">
+        <div class="section active" id="sec-dashboard"><div class="stats" id="statCards"></div><div class="card"><h2>Recent Orders</h2><div class="tbl-wrap" id="dashOrders"></div></div></div>
+
+        <div class="section" id="sec-inventory"><div class="grid2">
+          <div class="card"><h2 id="invFormTitle">Add Product</h2>
+            <form id="invForm"><input type="hidden" name="id" />
+              <div class="field"><label>Name *</label><input name="name" required /></div>
+              <div class="row2"><div class="field"><label>Category</label><input name="category" value="General" /></div><div class="field"><label>Price ($)</label><input type="number" name="price" step="0.01" min="0" value="0" required /></div></div>
+              <div class="row2"><div class="field"><label>Stock</label><input type="number" name="stock" min="0" value="0" /></div><div class="field"><label>Barcode</label><input name="barcode" /></div></div>
+              <div class="field"><label>Image URL</label><input name="imageUrl" placeholder="https://…" /></div>
+              <button type="submit" class="submit" id="invSubmit">＋ Add Product</button>
+              <button type="button" class="btn" id="invCancel" style="display:none">Cancel</button>
+            </form></div>
+          <div class="card"><h2>My Inventory <span class="badge b-gray" id="invCount">—</span></h2><div class="tbl-wrap" id="invTable"></div></div>
+        </div></div>
+
+        <div class="section" id="sec-orders">
+          <div class="card"><h2>🔔 New Orders (pool)</h2><div class="sub" style="color:var(--muted);font-size:13px;margin-bottom:10px">Accept to fulfil, then mark ready for pickup.</div><div class="tbl-wrap" id="poolTable"></div></div>
+          <div class="card"><h2>My Accepted Orders</h2><div class="tbl-wrap" id="myOrdersTable"></div></div>
+        </div>
+
+        <div class="section" id="sec-reports"><div class="card"><h2>Sales Report <button class="btn btn-sm" id="repExport" style="float:right">⬇ CSV</button></h2><div class="tbl-wrap" id="repTable"></div></div></div>
+        <div class="section" id="sec-earnings"><div id="earnBody"></div></div>
+
+        <div class="section" id="sec-gst"><div class="card" style="max-width:520px"><h2>GST Details</h2>
+          <form id="gstForm"><div class="field"><label>GST Number</label><input name="gstNumber" placeholder="29ABCDE1234F1Z5" /></div>
+          <div id="gstSummary" style="margin:12px 0;color:var(--muted);font-size:14px"></div>
+          <button type="submit" class="submit">Save GST</button></form></div></div>
+
+        <div class="section" id="sec-settings"><div class="grid2">
+          <div class="card"><h2>📍 Delivery Radius</h2><form id="radiusForm"><div class="field"><label>Radius (km)</label><input type="number" name="deliveryRadiusKm" min="1" step="0.5" value="5" /></div><button type="submit" class="submit">Save Radius</button></form></div>
+          <div class="card"><h2>🕒 Working Hours</h2><form id="hoursForm"><div class="row2"><div class="field"><label>Opens</label><input type="time" name="openTime" value="09:00" /></div><div class="field"><label>Closes</label><input type="time" name="closeTime" value="21:00" /></div></div>
+            <div class="field"><label><input type="checkbox" name="isOpen" checked style="width:auto"> Shop is currently open</label></div>
+            <button type="submit" class="submit">Save Hours</button></form></div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+  <div id="toast"></div>
+
+  <script>
+    const AUTH_API="/api/auth", PRODUCTS_API="/api/products", ORDERS_API="/api/orders", DEALER_API="/api/dealers", PROMO_API="/api/promotions";
+    const user = JSON.parse(localStorage.getItem("cartify_user")||"null");
+    const $=(id)=>document.getElementById(id);
+    let toastTimer; function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove("show"),2400);}
+    const money=(n)=>"$"+Number(n||0).toFixed(2);
+    const statusBadge=(s)=>{const m={Pending:"b-amber",Accepted:"b-blue",ReadyForPickup:"b-blue",PickedUp:"b-blue",Delivered:"b-green",Rejected:"b-pink",Cancelled:"b-pink",Refunded:"b-gray"};return `<span class="badge ${m[s]||"b-gray"}">${s}</span>`;};
+
+    if(!user || user.role!=="Dealer"){ $("gate").style.display="block"; if(user)$("gateMsg").textContent=`Signed in as ${user.email} (${user.role}). Not a dealer.`; }
+    else { $("app").style.display="flex"; $("sbUser").textContent=user.email; init(); }
+    $("logoutBtn").onclick=()=>{localStorage.removeItem("cartify_user");localStorage.removeItem("cartify_token");location.href="/";};
+
+    let dealer={}, settings={gstPercent:18};
+    async function jget(u){const r=await fetch(u);if(!r.ok)throw new Error();return r.json();}
+    async function loadDealer(){ try{dealer=await jget(`${DEALER_API}/${encodeURIComponent(user.email)}`);}catch{dealer={email:user.email};}
+      $("openBadge").textContent=dealer.isOpen?"Open":"Closed"; $("openBadge").className="badge "+(dealer.isOpen?"b-green":"b-pink"); }
+    async function loadSettings(){ try{settings=await jget(`${PROMO_API}/settings`);}catch{} }
+
+    function init(){
+      document.querySelectorAll(".nav-item").forEach(n=>n.onclick=()=>show(n.dataset.s));
+      $("invForm").onsubmit=onSaveProduct; $("invCancel").onclick=resetInv;
+      $("gstForm").onsubmit=(e)=>saveProfile(e,{gstNumber:e.target.gstNumber.value});
+      $("radiusForm").onsubmit=(e)=>saveProfile(e,{deliveryRadiusKm:parseFloat(e.target.deliveryRadiusKm.value)||5});
+      $("hoursForm").onsubmit=(e)=>saveProfile(e,{openTime:e.target.openTime.value,closeTime:e.target.closeTime.value,isOpen:e.target.isOpen.checked});
+      $("repExport").onclick=exportReport;
+      Promise.all([loadDealer(),loadSettings()]).then(()=>show("dashboard"));
+      document.addEventListener("click",onAction);
+    }
+    function show(s){
+      document.querySelectorAll(".section").forEach(x=>x.classList.toggle("active",x.id==="sec-"+s));
+      document.querySelectorAll(".nav-item").forEach(n=>n.classList.toggle("active",n.dataset.s===s));
+      $("pageTitle").textContent=({dashboard:"Dashboard",inventory:"Manage Inventory",orders:"Orders",reports:"Sales Reports",earnings:"Earnings",gst:"GST Details",settings:"Radius & Hours"})[s];
+      ({dashboard:renderDashboard,inventory:renderInventory,orders:renderOrders,reports:renderReports,earnings:renderEarnings,gst:renderGst,settings:renderSettings}[s]||(()=>{}))();
+    }
+
+    const myOrders=()=>jget(`${ORDERS_API}/dealer/${encodeURIComponent(user.email)}`).catch(()=>[]);
+    const allOrders=()=>jget(ORDERS_API).catch(()=>[]);
+    const myProducts=()=>jget(`${PRODUCTS_API}/dealer/${encodeURIComponent(user.email)}`).catch(()=>[]);
+    const delivered=(os)=>os.filter(o=>o.status==="Delivered");
+
+    async function renderDashboard(){
+      const os=await myOrders(); const sales=delivered(os).reduce((s,o)=>s+Number(o.total),0);
+      const cards=[{v:money(sales),l:"Delivered Sales"},{v:os.length,l:"My Orders"},{v:delivered(os).length,l:"Completed"},{v:(await myProducts()).length,l:"Products"}];
+      $("statCards").innerHTML=cards.map(c=>`<div class="stat"><div class="v">${c.v}</div><div class="l">${c.l}</div></div>`).join("");
+      $("dashOrders").innerHTML=os.length?`<table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead><tbody>`+os.slice(0,8).map(o=>`<tr><td>#${o.id}</td><td>${o.customerName}</td><td>${money(o.total)}</td><td>${statusBadge(o.status)}</td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No orders yet.</div>`;
+    }
+
+    // ---- Inventory ----
+    let editId=null;
+    async function renderInventory(){
+      const ps=await myProducts(); $("invCount").textContent=ps.length;
+      $("invTable").innerHTML=ps.length?`<table><thead><tr><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead><tbody>`+ps.map(p=>`<tr><td>${p.name}</td><td>${p.category}</td><td>${money(p.price)}</td><td>${p.stock}</td><td><button class="link-blue" data-editp="${p.id}">Edit</button> · <button class="link-red" data-delp="${p.id}">Delete</button></td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No products yet — add your first.</div>`;
+    }
+    function resetInv(){editId=null;$("invForm").reset();$("invFormTitle").textContent="Add Product";$("invSubmit").textContent="＋ Add Product";$("invCancel").style.display="none";}
+    async function onSaveProduct(e){
+      e.preventDefault(); const f=e.target;
+      const body={name:f.name.value.trim(),category:f.category.value.trim()||"General",price:parseFloat(f.price.value)||0,stock:parseInt(f.stock.value)||0,barcode:f.barcode.value.trim(),imageUrl:f.imageUrl.value.trim()||null,dealerEmail:user.email};
+      try{ const url=editId?`${PRODUCTS_API}/${editId}`:PRODUCTS_API; const r=await fetch(url,{method:editId?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok)throw new Error(); toast(editId?"Product updated":"Product added"); resetInv(); renderInventory(); }catch{toast("Save failed");}
+    }
+
+    // ---- Orders ----
+    async function renderOrders(){
+      const [pool,mine]=await Promise.all([allOrders(),myOrders()]);
+      const pending=pool.filter(o=>o.status==="Pending");
+      $("poolTable").innerHTML=pending.length?`<table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Actions</th></tr></thead><tbody>`+pending.map(o=>`<tr><td>#${o.id}</td><td>${o.customerName}</td><td style="font-size:12px;color:var(--muted)">${(o.items||[]).map(i=>i.name+"×"+i.quantity).join(", ")}</td><td>${money(o.total)}</td><td><button class="link-green" data-accept="${o.id}">Accept</button> · <button class="link-red" data-reject="${o.id}">Reject</button></td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No new orders in the pool.</div>`;
+      $("myOrdersTable").innerHTML=mine.length?`<table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>`+mine.map(o=>`<tr><td>#${o.id}</td><td>${o.customerName}</td><td>${money(o.total)}</td><td>${statusBadge(o.status)}</td><td>${o.status==="Accepted"?`<button class="link-blue" data-ready="${o.id}">Mark ready for pickup</button>`:"—"}</td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No accepted orders yet.</div>`;
+    }
+    async function assign(id,body,msg){ try{const r=await fetch(`${ORDERS_API}/${id}/assign`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok)throw new Error();toast(msg);renderOrders();renderDashboard();}catch{toast("Failed");} }
+
+    // ---- Reports / Earnings / GST ----
+    let repRows=[];
+    async function renderReports(){ const os=await myOrders(); repRows=[["Order","Customer","Total","Status","Date"],...os.map(o=>[`#${o.id}`,o.customerName,Number(o.total).toFixed(2),o.status,new Date(o.createdAt).toLocaleDateString()])];
+      $("repTable").innerHTML=os.length?`<table><thead><tr>${repRows[0].map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>`+os.map(o=>`<tr><td>#${o.id}</td><td>${o.customerName}</td><td>${money(o.total)}</td><td>${statusBadge(o.status)}</td><td>${new Date(o.createdAt).toLocaleDateString()}</td></tr>`).join("")+`</tbody></table>`:`<div class="empty">No sales yet.</div>`; }
+    function exportReport(){const csv=repRows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="dealer-sales.csv";a.click();}
+    async function renderEarnings(){ const os=await myOrders(); const done=delivered(os); const gross=done.reduce((s,o)=>s+Number(o.total),0); const gst=gross*Number(settings.gstPercent||0)/100; const net=gross-gst;
+      $("earnBody").innerHTML=`<div class="stats"><div class="stat"><div class="v">${money(gross)}</div><div class="l">Gross (delivered)</div></div><div class="stat"><div class="v">${money(gst)}</div><div class="l">GST (${settings.gstPercent||0}%)</div></div><div class="stat"><div class="v">${money(net)}</div><div class="l">Net earnings</div></div><div class="stat"><div class="v">${done.length}</div><div class="l">Completed orders</div></div></div>
+      <div class="card"><h2>Payout breakdown</h2><table><thead><tr><th>Order</th><th>Gross</th><th>GST</th><th>Net</th></tr></thead><tbody>${done.map(o=>{const g=Number(o.total),t=g*Number(settings.gstPercent||0)/100;return `<tr><td>#${o.id}</td><td>${money(g)}</td><td>${money(t)}</td><td>${money(g-t)}</td></tr>`;}).join("")||`<tr><td colspan="4" class="empty">No completed orders.</td></tr>`}</tbody></table></div>`; }
+    async function renderGst(){ $("gstForm").gstNumber.value=dealer.gstNumber||""; const os=await myOrders(); const gross=delivered(os).reduce((s,o)=>s+Number(o.total),0); const gst=gross*Number(settings.gstPercent||0)/100;
+      $("gstSummary").innerHTML=`GST rate: <b>${settings.gstPercent||0}%</b> · Taxable sales: <b>${money(gross)}</b> · GST collected: <b>${money(gst)}</b>`; }
+    function renderSettings(){ $("radiusForm").deliveryRadiusKm.value=dealer.deliveryRadiusKm||5; $("hoursForm").openTime.value=dealer.openTime||"09:00"; $("hoursForm").closeTime.value=dealer.closeTime||"21:00"; $("hoursForm").isOpen.checked=dealer.isOpen!==false; }
+
+    async function saveProfile(e,patch){ e.preventDefault(); const body=Object.assign({email:user.email,shopName:dealer.shopName||"",gstNumber:dealer.gstNumber||"",deliveryRadiusKm:dealer.deliveryRadiusKm||5,openTime:dealer.openTime||"09:00",closeTime:dealer.closeTime||"21:00",isOpen:dealer.isOpen!==false},patch);
+      try{ const r=await fetch(DEALER_API,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}); if(!r.ok)throw new Error(); dealer=await r.json(); toast("Saved"); $("openBadge").textContent=dealer.isOpen?"Open":"Closed"; $("openBadge").className="badge "+(dealer.isOpen?"b-green":"b-pink"); }catch{toast("Save failed");} }
+
+    async function onAction(e){ const t=e.target;
+      const ep=t.closest("[data-editp]"); if(ep){ const p=(await myProducts()).find(x=>String(x.id)===ep.dataset.editp); if(p){editId=p.id;const f=$("invForm");f.name.value=p.name;f.category.value=p.category;f.price.value=p.price;f.stock.value=p.stock;f.barcode.value=p.barcode||"";f.imageUrl.value=p.imageUrl||"";$("invFormTitle").textContent="Edit Product";$("invSubmit").textContent="Update";$("invCancel").style.display="inline-flex";} }
+      const dp=t.closest("[data-delp]"); if(dp){ if(confirm("Delete this product?")){try{await fetch(`${PRODUCTS_API}/${dp.dataset.delp}`,{method:"DELETE"});toast("Deleted");renderInventory();}catch{toast("Failed");}} }
+      const ac=t.closest("[data-accept]"); if(ac) assign(ac.dataset.accept,{dealerEmail:user.email,status:"Accepted"},"Order accepted");
+      const rj=t.closest("[data-reject]"); if(rj) assign(rj.dataset.reject,{status:"Rejected"},"Order rejected");
+      const rd=t.closest("[data-ready]"); if(rd) assign(rd.dataset.ready,{status:"ReadyForPickup"},"Marked ready for pickup");
+    }
+  </script>
+</body>
+</html>

@@ -78,6 +78,41 @@ public class OrdersController : ControllerBase
         return Ok(orders.Select(Project));
     }
 
+    // GET /api/orders/dealer/{email}  (orders a dealer has accepted)
+    [HttpGet("dealer/{email}")]
+    public async Task<IActionResult> GetByDealer(string email)
+    {
+        var orders = await _context.Orders
+            .Where(o => o.DealerEmail == email)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+        return Ok(orders.Select(Project));
+    }
+
+    // GET /api/orders/partner/{email}  (orders assigned to a delivery partner)
+    [HttpGet("partner/{email}")]
+    public async Task<IActionResult> GetByPartner(string email)
+    {
+        var orders = await _context.Orders
+            .Where(o => o.DeliveryPartnerEmail == email)
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+        return Ok(orders.Select(Project));
+    }
+
+    // PUT /api/orders/5/assign  (dealer accepts, partner claims, or status change)
+    [HttpPut("{id:int}/assign")]
+    public async Task<IActionResult> Assign(int id, AssignOrderRequest request)
+    {
+        var order = await _context.Orders.FindAsync(id);
+        if (order is null) return NotFound();
+        if (!string.IsNullOrWhiteSpace(request.DealerEmail)) order.DealerEmail = request.DealerEmail;
+        if (!string.IsNullOrWhiteSpace(request.DeliveryPartnerEmail)) order.DeliveryPartnerEmail = request.DeliveryPartnerEmail;
+        if (!string.IsNullOrWhiteSpace(request.Status)) order.Status = request.Status;
+        await _context.SaveChangesAsync();
+        return Ok(Project(order));
+    }
+
     // GET /api/orders/cooccurrence  (AI: product popularity + "bought together" counts)
     [HttpGet("cooccurrence")]
     public async Task<IActionResult> Cooccurrence()
@@ -154,6 +189,8 @@ public class OrdersController : ControllerBase
         o.Tax,
         o.Total,
         o.Status,
+        o.DealerEmail,
+        o.DeliveryPartnerEmail,
         o.CouponCode,
         o.DeliverySlot,
         o.Notes,

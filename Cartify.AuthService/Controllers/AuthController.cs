@@ -1,6 +1,8 @@
-﻿using Cartify.AuthService.Data;
+﻿using Cartify.AuthService.Auth;
+using Cartify.AuthService.Data;
 using Cartify.AuthService.DTOs;
 using Cartify.AuthService.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -28,22 +30,49 @@ public class AuthController : ControllerBase
             return BadRequest("Email already exists");
         }
 
+        var allowedRoles = new[] { "Customer", "Dealer", "DeliveryPartner" };
+        var role = allowedRoles.Contains(request.Role) ? request.Role! : "Customer";
+
+        var otp = JwtHelper.GenerateOtp();
         var user = new User
         {
             FullName = request.FullName,
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = "Customer",
+            Role = role,
+            IsVerified = false,
+            OtpCode = otp,
+            OtpExpiry = DateTime.UtcNow.AddMinutes(10),
             CreatedAt = DateTime.UtcNow
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
+        // In production the OTP would be emailed/SMS'd; here we return it for the demo.
         return Ok(new
         {
-            message = "User registered successfully"
+            message = "Registered. Enter the OTP to verify your account.",
+            requiresOtp = true,
+            devOtp = otp
         });
+    }
+
+    // POST /api/auth/verify-otp  — confirm the code from registration
+    [HttpPost("verify-otp")]
+    public async Task<IActionResult> VerifyOtp(VerifyOtpRequest request)
+    {
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        if (user == null) return NotFound();
+        if (user.IsVerified) return Ok(new { message = "Already verified" });
+        if (user.OtpCode != request.Code || user.OtpExpiry < DateTime.UtcNow)
+            return BadRequest("Invalid or expired OTP.");
+
+        user.IsVerified = true;
+        user.OtpCode = null;
+        user.OtpExpiry = null;
+        await _context.SaveChangesAsync();
+        return Ok(new { message = "Account verified. You can sign in now." });
     }
 
     [HttpPost("login")]
@@ -71,9 +100,15 @@ public class AuthController : ControllerBase
             return Unauthorized("Invalid credentials");
         }
 
+        if (!user.IsVerified)
+        {
+            return StatusCode(403, "Please verify your account with the OTP before signing in.");
+        }
+
         return Ok(new
         {
             message = "Login successful",
+            token = JwtHelper.GenerateToken(user),
             email = user.Email,
             fullName = user.FullName,
             role = user.Role
@@ -110,6 +145,7 @@ public class AuthController : ControllerBase
     }
 
     // PUT /api/auth/change-password
+    [Authorize]
     [HttpPut("change-password")]
     public async Task<IActionResult> ChangePassword(ChangePasswordRequest request)
     {
@@ -137,6 +173,7 @@ public class AuthController : ControllerBase
 
 
     // GET /api/auth/users  (admin — list all customers/users)
+    [Authorize(Roles = "Admin")]
     [HttpGet("users")]
     public async Task<IActionResult> GetUsers()
     {
@@ -149,6 +186,7 @@ public class AuthController : ControllerBase
     }
 
     // PUT /api/auth/users/5/block  (admin — block or unblock a user)
+    [Authorize(Roles = "Admin")]
     [HttpPut("users/{id:int}/block")]
     public async Task<IActionResult> SetBlocked(int id, [FromBody] BlockRequest request)
     {

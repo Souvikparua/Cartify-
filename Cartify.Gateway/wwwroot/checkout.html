@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function(){var _f=window.fetch;window.fetch=function(u,o){try{o=o||{};var t=localStorage.getItem("cartify_token");if(t&&typeof u==="string"&&u.indexOf("/api/")===0){o.headers=Object.assign({},o.headers,{Authorization:"Bearer "+t});}}catch(e){}return _f.call(this,u,o);};})();
+  </script>
+  <script>
+    try {
+      var _u = JSON.parse(localStorage.getItem("cartify_user") || "null");
+      if (_u && _u.role === "Dealer") location.replace("/dealer.html");
+      else if (_u && _u.role === "DeliveryPartner") location.replace("/delivery.html");
+    } catch (e) {}
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cartify — Checkout</title>

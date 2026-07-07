@@ -62,11 +62,26 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CartifyPromotionsDB;User Id=sa;Password=Cartify_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False"
 
+  dealerservice:
+    <<: *common
+    build: { context: ., dockerfile: Dockerfile, args: { PROJECT: Cartify.DealerService } }
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CartifyDealerDB;User Id=sa;Password=Cartify_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False"
+
+  deliveryservice:
+    <<: *common
+    build: { context: ., dockerfile: Dockerfile, args: { PROJECT: Cartify.DeliveryService } }
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=sqlserver,1433;Database=CartifyDeliveryDB;User Id=sa;Password=Cartify_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False"
+
   gateway:
     build: { context: ., dockerfile: Dockerfile, args: { PROJECT: Cartify.Gateway } }
     restart: unless-stopped
     ports:
       - "5030:8080"
+    volumes:
+      # Serve the SPA from the live folder so frontend edits apply without an image rebuild.
+      - ./Cartify.Gateway/wwwroot:/app/wwwroot
     environment:
       ReverseProxy__Clusters__auth__Destinations__d1__Address: "http://authservice:8080"
       ReverseProxy__Clusters__users__Destinations__d1__Address: "http://userservice:8080"
@@ -74,6 +89,8 @@ services:
       ReverseProxy__Clusters__orders__Destinations__d1__Address: "http://orderservice:8080"
       ReverseProxy__Clusters__cart__Destinations__d1__Address: "http://cartservice:8080"
       ReverseProxy__Clusters__promotions__Destinations__d1__Address: "http://promotionsservice:8080"
+      ReverseProxy__Clusters__dealers__Destinations__d1__Address: "http://dealerservice:8080"
+      ReverseProxy__Clusters__delivery__Destinations__d1__Address: "http://deliveryservice:8080"
     depends_on:
       - authservice
       - productservice
@@ -81,6 +98,8 @@ services:
       - cartservice
       - userservice
       - promotionsservice
+      - dealerservice
+      - deliveryservice
 
 volumes:
   mssql-data:

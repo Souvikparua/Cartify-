@@ -1,0 +1,17 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+
+# IDE / editor
+.vs/
+.idea/
+*.user
+*.suo
+
+# Claude Code local settings
+.claude/
+
+# OS
+Thumbs.db
+.DS_Store

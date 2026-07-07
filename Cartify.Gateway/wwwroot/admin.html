@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    (function(){var _f=window.fetch;window.fetch=function(u,o){try{o=o||{};var t=localStorage.getItem("cartify_token");if(t&&typeof u==="string"&&u.indexOf("/api/")===0){o.headers=Object.assign({},o.headers,{Authorization:"Bearer "+t});}}catch(e){}return _f.call(this,u,o);};})();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cartify — Admin Panel</title>
@@ -400,7 +403,7 @@
       $("whoami").textContent = user.fullName || user.email;
       // initRouter() is started at the very end, once TITLES/RENDER and all handlers are defined.
     }
-    $("logoutBtn").onclick = () => { localStorage.removeItem("cartify_user"); location.href = "/"; };
+    $("logoutBtn").onclick = () => { localStorage.removeItem("cartify_user"); localStorage.removeItem("cartify_token"); location.href = "/"; };
 
     // ---- Local storage stores ----
     const LS = {
